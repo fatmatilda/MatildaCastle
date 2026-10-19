@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matilda Castle</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #0b0b0f;
+    color: #e8e3d8;
+    overflow: hidden;
+  }
+  #app {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(120, 60, 160, 0.15), transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(60, 20, 100, 0.25), transparent 70%),
+      linear-gradient(180deg, #0b0b0f 0%, #14101c 100%);
+  }
+  #app::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 70% 50%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(2px 2px at 55% 25%, rgba(180,150,220,0.5), transparent),
+      radial-gradient(1px 1px at 10% 65%, rgba(255,255,255,0.4), transparent);
+    pointer-events: none;
+  }
+  .scene {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 720px;
+    padding: 40px;
+    text-align: center;
+  }
+  .hidden { display: none !important; }
+  h1.title {
+    font-size: clamp(32px, 6vw, 64px);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    font-weight: 400;
+    background: linear-gradient(180deg, #f3e6c8, #b8a37a 60%, #7a6746);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(180, 140, 255, 0.25));
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    font-size: 12px;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    color: #8a7fa5;
+    margin-bottom: 60px;
+  }
+  .divider {
+    width: 120px;
+    height: 1px;
+    margin: 0 auto 40px;
+    background: linear-gradient(90deg, transparent, #b8a37a, transparent);
+  }
+  button {
+    font-family: 'Georgia', serif;
+    font-size: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 14px 40px;
+    border: 1px solid #6b5a8a;
+    background: rgba(30, 20, 50, 0.5);
+    color: #e8e3d8;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(4px);
+  }
+  button:hover:not(:disabled) {
+    border-color: #b8a37a;
+    background: rgba(70, 40, 110, 0.4);
+    color: #f3e6c8;
+    box-shadow: 0 0 24px rgba(180, 140, 255, 0.35);
+    letter-spacing: 4px;
+  }
+  button:active:not(:disabled) { transform: scale(0.97); }
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: #3a3350;
+  }
+  .menu-btn { min-width: 220px; }
+  .back-btn {
+    margin-top: 20px;
+    font-size: 12px;
+    letter-spacing: 4px;
+    padding: 10px 28px;
+    background: transparent;
+    border-color: #3a3350;
+    color: #8a7fa5;
+  }
+  .chapter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+  .chapter-btn {
+    position: relative;
+    text-align: left;
+    padding: 20px 26px;
+    width: 100%;
+  }
+  .chapter-btn .ch-num {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #8a7fa5;
+    margin-bottom: 6px;
+  }
+  .chapter-btn .ch-name {
+    display: block;
+    font-size: 17px;
+    letter-spacing: 2px;
+    text-transform: none;
+    color: #e8e3d8;
+  }
+  .chapter-btn.locked {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #3a3350;
+    background: rgba(20, 15, 30, 0.5);
+  }
+  .chapter-btn.locked:hover {
+    border-color: #3a3350;
+    background: rgba(20, 15, 30, 0.5);
+    color: #e8e3d8;
+    box-shadow: none;
+    letter-spacing: normal;
+    transform: none;
+  }
+  .chapter-btn.locked .ch-name { color: #8a7fa5; }
+  .chapter-btn .soon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #6b5a8a;
+    border: 1px solid #3a3350;
+    padding: 4px 10px;
+  }
+  .desc-box {
+    max-width: 560px;
+    margin: 0 auto 40px;
+    padding: 32px;
+    border: 1px solid #3a3350;
+    background: rgba(20, 15, 30, 0.6);
+    backdrop-filter: blur(6px);
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .desc-box p {
+    font-style: italic;
+    line-height: 1.8;
+    color: #b8a3d0;
+    letter-spacing: 0.5px;
+    font-size: 15px;
+  }
+  .desc-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .scene-title {
+    font-size: 13px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: #8a7fa5;
+    margin-bottom: 20px;
+  }
+  .fade-in { animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #gameScreen {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(80, 40, 120, 0.25), transparent 60%),
+      linear-gradient(180deg, #120c1c 0%, #0a0710 100%);
+    color: #e8e3d8;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .game-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 32px;
+    background: rgba(10, 5, 20, 0.6);
+    border-bottom: 1px solid #2a2038;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .balance-container { position: relative; display: flex; align-items: baseline; gap: 14px; }
+  .balance-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #8a7fa5;
+  }
+  .balance-value {
+    font-size: 26px;
+    letter-spacing: 1px;
+    color: #d4b8ff;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  .balance-value.flash { color: #f3e6c8; text-shadow: 0 0 14px rgba(243, 230, 200, 0.6); }
+  
+  .floating-money {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin-left: 15px;
+    font-size: 18px;
+    color: #b8a37a;
+    white-space: nowrap;
+    animation: floatUp 2s ease-out forwards;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .floating-money .mult-text {
+    font-size: 11px;
+    color: #7a5a9a;
+    display: block;
+    margin-top: -2px;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    20% { opacity: 1; transform: translateY(-5px); }
+    100% { opacity: 0; transform: translateY(-35px); }
+  }
+
+  .menu-mini {
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 8px 18px;
+    background: transparent;
+    color: #8a7fa5;
+    border: 1px solid #3a3350;
+    backdrop-filter: none;
+  }
+  .menu-mini:hover:not(:disabled) {
+    background: rgba(120, 90, 160, 0.15);
+    box-shadow: none;
+    letter-spacing: 3px;
+    color: #f3e6c8;
+    border-color: #b8a37a;
+  }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    background: rgba(10, 5, 20, 0.4);
+    border-bottom: 1px solid #2a2038;
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1;
+    max-width: 200px;
+    font-size: 12px;
+    letter-spacing: 4px;
+    padding: 14px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #6b5a8a;
+    backdrop-filter: none;
+    border-radius: 0;
+  }
+  .tab-btn:hover:not(:disabled) {
+    background: rgba(120, 90, 160, 0.1);
+    color: #e8e3d8;
+    letter-spacing: 4px;
+    box-shadow: none;
+    border-bottom-color: transparent;
+    transform: none;
+  }
+  .tab-btn.active {
+    color: #f3e6c8;
+    border-bottom-color: #b8a37a;
+    background: rgba(120, 90, 160, 0.12);
+  }
+
+  .game-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 24px 50px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .tab-panel {
+    display: none;
+    width: 100%;
+    max-width: 960px;
+  }
+  .tab-panel.active { display: flex; gap: 24px; flex-wrap: wrap; align-items: stretch; }
+  
+  .col-left, .col-right {
+    border: 1px solid #2a2038;
+    background: rgba(20, 12, 30, 0.4);
+    border-radius: 4px;
+    padding: 24px;
+  }
+  .col-left {
+    flex: 1 1 280px;
+    min-height: 360px;
+    height: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .col-right {
+    flex: 1.4 1 400px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-label {
+    width: 100%;
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #8a7fa5;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a2038;
+    text-align: left;
+  }
+
+  .work-btn {
+    font-size: 20px;
+    letter-spacing: 5px;
+    padding: 22px 60px;
+    border: 2px solid #7a5a9a;
+    background: linear-gradient(180deg, #5a3a7a, #2a1a4a);
+    color: #f3e6c8;
+    border-radius: 3px;
+    backdrop-filter: none;
+    transition: all 0.2s ease;
+  }
+  .work-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #7a5a9a, #3a2a5a);
+    border-color: #b8a37a;
+    box-shadow: 0 6px 24px rgba(160, 100, 220, 0.45);
+    transform: translateY(-2px);
+    letter-spacing: 5px;
+    color: #fff5e0;
+  }
+  .work-btn:disabled {
+    opacity: 0.3;
+    background: #2a2038;
+    border-color: #3a3350;
+    color: #6b5a8a;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .cooldown-container {
+    margin-top: 22px;
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .cooldown-bar {
+    width: 100%;
+    height: 8px;
+    background: #1a1228;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #2a2038;
+    transition: opacity 0.3s;
+  }
+  .cooldown-bar.inactive { opacity: 0.3; }
+  .cooldown-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7a5a9a, #b8a37a);
+    transition: width 0.05s linear;
+  }
+  .cooldown-bar.inactive .cooldown-fill {
+    background: #6b5a8a;
+  }
+  .cooldown-text-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 12px;
+    color: #b8a3d0;
+    letter-spacing: 0.5px;
+  }
+  .cooldown-text-row .label { color: #8a7fa5; }
+  .cooldown-text-row span { font-variant-numeric: tabular-nums; }
+  
+  .bonus-text {
+    font-size: 12px;
+    color: #b8a37a;
+    margin-top: 12px;
+    font-style: italic;
+    text-align: left;
+    width: 100%;
+    min-height: 18px;
+  }
+  .hint {
+    font-size: 12px;
+    font-style: italic;
+    color: #6b5a8a;
+    margin-top: 10px;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+
+  .job-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .job-item {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #2a2038;
+    background: rgba(30, 20, 50, 0.6);
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+  .job-item.hired { border-color: #7a5a9a; background: rgba(120, 90, 160, 0.08); }
+  .job-item.selected { border-color: #b8a37a; background: rgba(180, 163, 122, 0.1); box-shadow: 0 0 15px rgba(180, 163, 122, 0.15); }
+  
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    gap: 16px;
+  }
+  .job-info { flex: 1; }
+  .job-name { font-size: 17px; letter-spacing: 1px; color: #e8e3d8; margin-bottom: 4px; }
+  .job-item.selected .job-name { color: #f3e6c8; }
+  .job-desc { font-size: 13px; font-style: italic; color: #8a7fa5; }
+  .job-stats { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: #d4b8ff; letter-spacing: 0.5px; }
+  .job-stats span { white-space: nowrap; }
+  .job-stats .label { color: #8a7fa5; }
+  .job-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  
+  .hire-btn, .upgrade-btn, .select-btn {
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 10px 16px;
+    background: transparent;
+    color: #d4b8ff;
+    border: 1px solid #7a5a9a;
+    backdrop-filter: none;
+    transition: all 0.2s;
+  }
+  .select-btn { color: #b8a37a; border-color: #b8a37a; }
+  .select-btn:hover:not(:disabled) { background: rgba(180, 163, 122, 0.2); color: #f3e6c8; border-color: #f3e6c8; }
+  .hire-btn:hover:not(:disabled), .upgrade-btn:hover:not(:disabled) {
+    background: #4a2a6a;
+    color: #f3e6c8;
+    box-shadow: none;
+    letter-spacing: 2px;
+    transform: none;
+  }
+  .hire-btn:disabled { opacity: 0.6; color: #8a7fa5; border-color: #3a3350; cursor: default; }
+  .select-btn:disabled { opacity: 0.5; cursor: default; border-color: #3a3350; color: #6b5a8a; }
+
+  .upgrade-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out, opacity 0.25s ease-out;
+    opacity: 0;
+    background: rgba(10, 5, 20, 0.4);
+    border-top: 1px solid transparent;
+    will-change: max-height;
+  }
+  .upgrade-wrapper.open {
+    max-height: 250px;
+    opacity: 1;
+    border-top-color: #2a2038;
+  }
+  .upgrade-inner {
+    padding: 18px;
+  }
+  .upg-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #2a2038;
+  }
+  .upg-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .upg-info { flex: 1; text-align: left; }
+  .upg-title { font-size: 13px; letter-spacing: 1px; color: #f3e6c8; margin-bottom: 4px; }
+  .upg-title span { color: #8a7fa5; font-size: 11px; margin-left: 6px; }
+  .upg-effect { font-size: 11px; color: #b8a3d0; font-style: italic; margin-bottom: 2px; }
+  .upg-stats { font-size: 11px; color: #d4b8ff; }
+  .upg-buy {
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 8px 14px;
+    background: rgba(120, 90, 160, 0.15);
+    color: #d4b8ff;
+    border: 1px solid #7a5a9a;
+    backdrop-filter: none;
+    white-space: nowrap;
+  }
+  .upg-buy:hover:not(:disabled):not(.maxed) {
+    background: #4a2a6a;
+    color: #f3e6c8;
+    border-color: #b8a37a;
+    letter-spacing: 2px;
+    box-shadow: none;
+    transform: none;
+  }
+  .upg-buy:disabled:not(.maxed) { opacity: 0.4; cursor: not-allowed; }
+  .upg-buy.maxed { border-color: #b8a37a; color: #b8a37a; background: transparent; cursor: default; opacity: 1; }
+
+  /* Shop Styles */
+  .shop-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .shop-item {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    border: 1px solid #2a2038;
+    background: rgba(30, 20, 50, 0.6);
+    border-radius: 4px;
+    align-items: center;
+  }
+  .shop-info { flex: 1; }
+  .shop-title { font-size: 18px; color: #f3e6c8; letter-spacing: 2px; margin-bottom: 6px; }
+  .shop-desc { font-size: 13px; color: #b8a3d0; font-style: italic; margin-bottom: 10px; }
+  .shop-current { font-size: 13px; color: #d4b8ff; }
+  .shop-buy {
+    font-size: 12px; letter-spacing: 2px; padding: 12px 24px;
+    background: rgba(180, 163, 122, 0.15); color: #f3e6c8; border: 1px solid #b8a37a;
+  }
+
+  /* Modals */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    animation: fadeIn 0.25s ease;
+  }
+  .modal {
+    max-width: 460px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 28px;
+    background: linear-gradient(180deg, #1a1228, #0e0a18);
+    border: 1px solid #7a5a9a;
+    box-shadow: 0 0 60px rgba(120, 60, 180, 0.4);
+    text-align: center;
+    border-radius: 4px;
+  }
+  .modal h2 {
+    font-size: 16px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #f3e6c8;
+    margin-bottom: 20px;
+    font-weight: 400;
+    flex-shrink: 0;
+  }
+  .modal p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #b8a3d0;
+    margin-bottom: 24px;
+    font-style: italic;
+    flex-shrink: 0;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-top: 16px;
+  }
+  .modal-actions button {
+    font-size: 12px;
+    letter-spacing: 3px;
+    padding: 12px 24px;
+  }
+  .modal-actions .confirm { border-color: #b85a7a; color: #f3c8d8; }
+  .modal-actions .confirm:hover { background: rgba(184, 90, 122, 0.3); border-color: #f3c8d8; color: #fff; }
+  
+  .changelog-content { text-align: left; font-size: 13px; color: #b8a3d0; line-height: 1.5; overflow-y: auto; flex: 1; padding-right: 10px; }
+  .changelog-content h3 { font-size: 14px; color: #f3e6c8; margin-bottom: 4px; font-weight: normal; border-bottom: 1px solid #3a3350; padding-bottom: 4px; margin-top: 12px; }
+  .changelog-content ul { padding-left: 18px; margin-bottom: 12px; }
+  .changelog-content li { margin-bottom: 2px; }
+  .changelog-content .date { font-size: 11px; color: #8a7fa5; font-style: italic; margin-bottom: 8px; display: block; }
+  .changelog-content::-webkit-scrollbar { width: 6px; }
+  .changelog-content::-webkit-scrollbar-thumb { background: #3a3350; border-radius: 3px; }
+
+  /* Statistics Tabs */
+  .stats-tabs {
+    display: flex;
+    border-bottom: 1px solid #2a2038;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+  .stats-tab {
+    flex: 1;
+    padding: 10px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #8a7fa5;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .stats-tab.active {
+    color: #f3e6c8;
+    border-bottom-color: #b8a37a;
+  }
+  .stats-content { display: none; width: 100%; text-align: left; overflow-y: auto; flex: 1; }
+  .stats-content.active { display: block; }
+  
+  .stats-highlight {
+    padding: 16px;
+    background: linear-gradient(180deg, rgba(120, 90, 160, 0.15), rgba(120, 90, 160, 0.05));
+    border: 1px solid #7a5a9a;
+    border-radius: 4px;
+    text-align: center;
+    margin-bottom: 16px;
+    box-shadow: inset 0 0 15px rgba(120, 90, 160, 0.1);
+  }
+  .stats-highlight-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #b8a3d0;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .stats-highlight-value {
+    font-size: 24px;
+    color: #f3e6c8;
+    font-weight: bold;
+    text-shadow: 0 0 15px rgba(243, 230, 200, 0.5);
+    letter-spacing: 1px;
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a2038;
+    font-size: 14px;
+    color: #e8e3d8;
+  }
+  .stats-row:last-child { border-bottom: none; }
+  .stats-row span:last-child { color: #d4b8ff; font-weight: bold; }
+
+  .bottom-right-corner {
+    position: absolute;
+    bottom: 20px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .version-text { font-size: 11px; color: #6b5a8a; letter-spacing: 1px; }
+  .changelog-btn {
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 8px;
+    background: transparent;
+    border-color: transparent;
+    color: #8a7fa5;
+    backdrop-filter: none;
+  }
+  .changelog-btn:hover {
+    background: transparent;
+    color: #f3e6c8;
+    border-color: transparent;
+    box-shadow: none;
+    letter-spacing: 2px;
+    transform: none;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Main Menu -->
+  <div id="mainMenu" class="scene">
+    <h1 class="title">Matilda Castle</h1>
+    <div class="subtitle">too much fat</div>
+    <div class="divider"></div>
+    <div style="display:flex; flex-direction:column; gap:16px; align-items:center;">
+      <button class="menu-btn" onclick="showChapters()">Play</button>
+      <button class="menu-btn" onclick="showStats()">Statistics</button>
+    </div>
+    <div class="bottom-right-corner">
+      <div class="version-text">v0.1.0</div>
+      <button class="changelog-btn" onclick="showChangelog()">Changelog</button>
+    </div>
+  </div>
+
+  <!-- Chapter Select -->
+  <div id="chapterSelect" class="scene hidden">
+    <div class="scene-title">Select Chapter</div>
+    <div class="divider"></div>
+    <div class="chapter-list">
+      <button class="chapter-btn" onclick="selectChapter(1)">
+        <span class="ch-num">Chapter I</span>
+        <span class="ch-name">Escape from Castle</span>
+      </button>
+      <button class="chapter-btn locked" disabled>
+        <span class="ch-num">Chapter II</span>
+        <span class="soon">soon</span>
+      </button>
+      <button class="chapter-btn locked" disabled>
+        <span class="ch-num">Chapter III</span>
+        <span class="soon">soon</span>
+      </button>
+    </div>
+    <button class="back-btn" onclick="showMenu()">Back</button>
+  </div>
+
+  <!-- Chapter Description -->
+  <div id="chapterDesc" class="scene hidden">
+    <div class="scene-title">Chapter I</div>
+    <h1 class="title" style="font-size: clamp(24px, 4vw, 40px);">Escape from Castle</h1>
+    <div class="divider"></div>
+    <div class="desc-box">
+      <p>Matilda rules this castle with cruelty, and she must fall. Take whatever work the castle offers. Earn every coin. Save without mercy — until you can afford a single can of Coca-Cola. Offer it to her. She drinks. She dies. And the gates will open at last for you.</p>
+    </div>
+    <div class="desc-actions">
+      <button id="newGameBtn" onclick="requestNewGame()">New Game</button>
+      <button id="continueBtn" onclick="continueGame()" disabled>Continue</button>
+    </div>
+    <button class="back-btn" onclick="showChapters()">Back</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="gameScreen" class="hidden">
+    <div class="game-top">
+      <div class="balance-container" id="balanceContainer">
+        <span class="balance-label">Balance</span>
+        <span class="balance-value" id="balanceDisplay">$0.00</span>
+      </div>
+      <button class="menu-mini" onclick="backToMenu()">Menu</button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="work" onclick="switchTab('work')">Work</button>
+      <button class="tab-btn" data-tab="shop" onclick="switchTab('shop')">Shop</button>
+    </div>
+    <div class="game-body">
+      
+      <!-- WORK TAB -->
+      <div class="tab-panel active" id="panel-work">
+        <div class="col-left">
+          <div class="section-label">Work</div>
+          <button id="workBtn" class="work-btn" disabled onclick="doWork()">Work</button>
+          
+          <div class="cooldown-container">
+            <div class="cooldown-bar inactive" id="cooldownBar">
+              <div class="cooldown-fill" id="cooldownFill"></div>
+            </div>
+            <div class="cooldown-text-row">
+              <span class="label">Cooldown</span>
+              <span id="cooldownText">0.0s</span>
+            </div>
+          </div>
+          
+          <div class="bonus-text" id="bonusText"></div>
+          <div class="hint" id="workHint">Hire a job to begin earning.</div>
+        </div>
+        <div class="col-right">
+          <div class="section-label">Jobs</div>
+          <div class="job-list" id="jobList"></div>
+        </div>
+      </div>
+
+      <!-- SHOP TAB -->
+      <div class="tab-panel" id="panel-shop">
+        <div class="shop-container">
+          <div class="section-label">Shop</div>
+          <div class="shop-item">
+            <div class="shop-info">
+              <div class="shop-title">Premium</div>
+              <div class="shop-desc">Every 10th work click yields an extra multiplier to your earnings.</div>
+              <div class="shop-current" id="shop-premium-current">Not owned</div>
+            </div>
+            <button class="shop-buy" id="shop-premium-buy" onclick="buyPremium()">Buy</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+const SAVE_KEY = 'matilda_castle_save';
+const GLOBAL_STATS_KEY = 'matilda_global_stats';
+
+const JOBS = [
+  {
+    id: 'boxes',
+    name: 'Carry Boxes',
+    desc: 'A simple job. Haul crates from dawn till dusk.',
+    hireCost: 0,
+    basePay: 0.50,
+    baseCd: 5000,
+    maxPay: 1.25,
+    maxCd: 3000,
+    payStep: 0.05,
+    cdStep: 200,
+    stamBase: 1, stamMult: 1.3,
+    earnBase: 0.5, earnMult: 1.35
+  },
+  {
+    id: 'dishes',
+    name: 'Wash Dishes',
+    desc: 'Scrub pots in the scullery. Pays better, but takes longer.',
+    hireCost: 20.00,
+    basePay: 3.00,
+    baseCd: 15000,
+    maxPay: 8.00,
+    maxCd: 5000,
+    payStep: 0.25,
+    cdStep: 500,
+    stamBase: 3, stamMult: 1.25,
+    earnBase: 2, earnMult: 1.22
+  }
+];
+
+const PREMIUM_MAX_LEVEL = 10;
+const PREMIUM_BASE_PRICE = 20;
+const PREMIUM_PRICE_MULT = 1.5;
+const PREMIUM_MULT_BASE = 1.2;
+const PREMIUM_MULT_STEP = 0.2;
+
+let currentChapter = 1;
+let game = null;
+let cooldownInterval = null;
+let playTimer = null;
+let sessionTime = 0;
+
+function formatMoney(num) {
+  if (num < 1000) return '$' + num.toFixed(2);
+  const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+  let i = 0;
+  while (num >= 1000 && i < suffixes.length - 1) {
+    num /= 1000;
+    i++;
+  }
+  return '$' + num.toFixed(num >= 100 ? 0 : (num >= 10 ? 1 : 2)) + suffixes[i];
+}
+
+function formatTime(seconds) {
+  if (!seconds || isNaN(seconds)) return '0s';
+  seconds = Math.floor(seconds);
+  if (seconds >= 3600) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return h + 'h ' + m + 'm';
+  }
+  if (seconds >= 60) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m + 'm ' + s + 's';
+  }
+  return seconds + 's';
+}
+
+function round2(n) { return Math.round(n * 100) / 100; }
+
+function getPremiumLevel() { return (game && game.premiumLevel) || 0; }
+function getPremiumMult() {
+  const lvl = getPremiumLevel();
+  return lvl > 0 ? round2(PREMIUM_MULT_BASE + (lvl - 1) * PREMIUM_MULT_STEP) : 1;
+}
+function getPremiumPrice() {
+  const lvl = getPremiumLevel();
+  return round2(PREMIUM_BASE_PRICE * Math.pow(PREMIUM_PRICE_MULT, lvl));
+}
+
+function getJobData(jobId) {
+  const job = JOBS.find(j => j.id === jobId);
+  const upg = (game && game.jobUpgrades[jobId]) || { stamina: 0, earnings: 0 };
+  const stamMaxLv = Math.floor((job.baseCd - job.maxCd) / job.cdStep);
+  const earnMaxLv = Math.floor((job.maxPay - job.basePay) / job.payStep);
+  return { job, upg, stamMaxLv, earnMaxLv };
+}
+
+function currentCooldown(jobId) {
+  const { job, upg } = getJobData(jobId);
+  return Math.max(job.maxCd, job.baseCd - upg.stamina * job.cdStep);
+}
+function currentPay(jobId) {
+  const { job, upg } = getJobData(jobId);
+  return Math.min(job.maxPay, round2(job.basePay + upg.earnings * job.payStep));
+}
+function staminaCost(jobId) {
+  const { job, upg } = getJobData(jobId);
+  return round2(job.stamBase * Math.pow(job.stamMult, upg.stamina));
+}
+function earningsCost(jobId) {
+  const { job, upg } = getJobData(jobId);
+  return round2(job.earnBase * Math.pow(job.earnMult, upg.earnings));
+}
+
+function getSave() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return {};
+  try { return JSON.parse(raw) || {}; } catch (e) { return {}; }
+}
+function writeSave(data) { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
+
+function getGlobalStats() {
+  const raw = localStorage.getItem(GLOBAL_STATS_KEY);
+  let data = { totalPlayTime: 0, chapterStats: {} };
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      data.totalPlayTime = parsed.totalPlayTime || 0;
+      data.chapterStats = parsed.chapterStats || {};
+    } catch (e) {}
+  }
+  if (!data.chapterStats[1]) data.chapterStats[1] = { started: 0, completed: 0, totalTime: 0 };
+  if (typeof data.chapterStats[1].totalTime !== 'number') data.chapterStats[1].totalTime = 0;
+  if (typeof data.chapterStats[1].started !== 'number') data.chapterStats[1].started = 0;
+  if (typeof data.chapterStats[1].completed !== 'number') data.chapterStats[1].completed = 0;
+  if (typeof data.totalPlayTime !== 'number') data.totalPlayTime = 0;
+  return data;
+}
+function writeGlobalStats(data) { localStorage.setItem(GLOBAL_STATS_KEY, JSON.stringify(data)); }
+
+function hasSave(chapter) {
+  const data = getSave();
+  return !!(data && data[chapter] && data[chapter].started);
+}
+
+function normalizeState(s) {
+  const upgrades = {};
+  if (s.jobUpgrades && typeof s.jobUpgrades === 'object') {
+    Object.keys(s.jobUpgrades).forEach(k => {
+      const u = s.jobUpgrades[k] || {};
+      upgrades[k] = {
+        stamina: Math.max(0, Number(u.stamina) || 0),
+        earnings: Math.max(0, Number(u.earnings) || 0)
+      };
+    });
+  }
+  return {
+    started: !!s.started,
+    money: typeof s.money === 'number' ? s.money : 0,
+    hiredJobs: Array.isArray(s.hiredJobs) ? s.hiredJobs.slice() : [],
+    selectedJobId: s.selectedJobId || null,
+    jobUpgrades: upgrades,
+    workCooldownEnd: typeof s.workCooldownEnd === 'number' ? s.workCooldownEnd : 0,
+    lastCooldownDuration: typeof s.lastCooldownDuration === 'number' ? s.lastCooldownDuration : 5000,
+    playTime: typeof s.playTime === 'number' ? s.playTime : 0,
+    workClicks: typeof s.workClicks === 'number' ? s.workClicks : 0,
+    premiumLevel: typeof s.premiumLevel === 'number' ? s.premiumLevel : 0
+  };
+}
+
+function saveGame() {
+  if (!game) return;
+  const data = getSave();
+  data[currentChapter] = game;
+  writeSave(data);
+}
+
+function hideAllScenes() {
+  ['mainMenu', 'chapterSelect', 'chapterDesc'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById('gameScreen').classList.add('hidden');
+}
+function showScene(id) {
+  hideAllScenes();
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+  el.classList.remove('fade-in');
+  void el.offsetWidth;
+  el.classList.add('fade-in');
+}
+function showMenu() { 
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+  if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
+  saveGame();
+  showScene('mainMenu'); 
+}
+function showChapters() { showScene('chapterSelect'); }
+
+function selectChapter(n) {
+  currentChapter = n;
+  document.getElementById('continueBtn').disabled = !hasSave(n);
+  showScene('chapterDesc');
+}
+
+function showChangelog() {
+  showModal(
+    'Changelog',
+    '<div class="changelog-content">' +
+      '<h3>v0.1.0</h3>' +
+      '<span class="date">October 19, 2026</span>' +
+      '<ul>' +
+        '<li>Added first playable chapter: Escape from Castle</li>' +
+        '<li>Introduced core job system: Carry Boxes and Wash Dishes</li>' +
+        '<li>Added earning mechanics with dynamic cooldowns</li>' +
+        '<li>Added Shop tab with Premium multiplier</li>' +
+        '<li>Added Statistics and formatting for large numbers</li>' +
+      '</ul>' +
+    '</div>',
+    'Close',
+    null,
+    closeModal,
+    closeModal
+  );
+}
+
+function showStats() {
+  const gStats = getGlobalStats();
+  const save = getSave()[currentChapter] || { playTime: 0 };
+  const ch1 = gStats.chapterStats[1];
+  
+  const html = 
+    '<div class="stats-tabs">' +
+      '<button class="stats-tab active" onclick="switchStatsTab(\'overall\', event)">Overall</button>' +
+      '<button class="stats-tab" onclick="switchStatsTab(\'ch1\', event)">Chapter I</button>' +
+    '</div>' +
+    '<div class="stats-content active" id="stats-overall">' +
+      '<div class="stats-highlight">' +
+        '<div class="stats-highlight-title">Total Time Played</div>' +
+        '<div class="stats-highlight-value">' + formatTime(gStats.totalPlayTime) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="stats-content" id="stats-ch1">' +
+      '<div class="stats-highlight">' +
+        '<div class="stats-highlight-title">Total Time in Chapter I</div>' +
+        '<div class="stats-highlight-value">' + formatTime(ch1.totalTime) + '</div>' +
+      '</div>' +
+      '<div class="stats-row"><span>Time in Current Save</span><span>' + formatTime(save.playTime) + '</span></div>' +
+      '<div class="stats-row"><span>Started / Completed</span><span>' + ch1.started + ' / ' + ch1.completed + '</span></div>' +
+    '</div>';
+
+  showModal('Statistics', html, 'Close', null, closeModal, closeModal);
+}
+
+function switchStatsTab(tabId, e) {
+  document.querySelectorAll('.stats-tab').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  document.querySelectorAll('.stats-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('stats-' + tabId).classList.add('active');
+}
+
+function requestNewGame() {
+  if (!hasSave(currentChapter)) { startNewGame(); return; }
+  showModal(
+    'Start Over?',
+    'All progress in this chapter will be erased, and the story will begin again from the very first moment. This cannot be undone.',
+    'Start Over',
+    'Cancel',
+    () => { closeModal(); startNewGame(); },
+    closeModal
+  );
+}
+
+function showModal(title, text, confirmLabel, cancelLabel, onConfirm, onCancel) {
+  const root = document.getElementById('modalRoot');
+  const cancelHtml = cancelLabel ? '<button id="modalCancel">' + cancelLabel + '</button>' : '';
+  const isSpecial = title === 'Changelog' || title === 'Statistics';
+  root.innerHTML =
+    '<div class="modal-overlay" id="modalOverlay">' +
+      '<div class="modal">' +
+        '<h2>' + title + '</h2>' +
+        (isSpecial ? text : '<p>' + text + '</p>') +
+        '<div class="modal-actions">' +
+          '<button class="confirm" id="modalConfirm">' + confirmLabel + '</button>' +
+          cancelHtml +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('modalConfirm').addEventListener('click', onConfirm);
+  if (cancelLabel) document.getElementById('modalCancel').addEventListener('click', onCancel);
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modalOverlay') onCancel();
+  });
+}
+
+function closeModal() {
+  document.getElementById('modalRoot').innerHTML = '';
+}
+
+function startNewGame() {
+  const data = getSave();
+  data[currentChapter] = {
+    started: true,
+    money: 0,
+    hiredJobs: [],
+    selectedJobId: null,
+    jobUpgrades: {},
+    workCooldownEnd: 0,
+    lastCooldownDuration: 5000,
+    playTime: 0,
+    workClicks: 0,
+    premiumLevel: 0
+  };
+  writeSave(data);
+  
+  const gStats = getGlobalStats();
+  gStats.chapterStats[currentChapter].started++;
+  writeGlobalStats(gStats);
+
+  launchChapter(currentChapter);
+}
+
+function continueGame() {
+  if (!hasSave(currentChapter)) return;
+  launchChapter(currentChapter);
+}
+
+function launchChapter(n) {
+  currentChapter = n;
+  const data = getSave();
+  game = normalizeState(data[n] || {});
+  hideAllScenes();
+  document.getElementById('gameScreen').classList.remove('hidden');
+  switchTab('work');
+  renderGame();
+  
+  if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) {
+    startCooldownTicker(game.lastCooldownDuration);
+  }
+  
+  if (playTimer) clearInterval(playTimer);
+  sessionTime = 0;
+  playTimer = setInterval(() => {
+    sessionTime++;
+    if (sessionTime % 10 === 0) {
+      game.playTime = (game.playTime || 0) + 10;
+      const gStats = getGlobalStats();
+      gStats.totalPlayTime += 10;
+      gStats.chapterStats[currentChapter].totalTime += 10;
+      writeGlobalStats(gStats);
+      saveGame();
+    }
+  }, 1000);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.remove('active');
+  });
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'shop') renderShop();
+}
+
+function renderGame() {
+  if (!game) return;
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderJobs();
+  updateWorkButton();
+  updateHint();
+  updateBonusText();
+}
+
+function renderJobs() {
+  const list = document.getElementById('jobList');
+  list.innerHTML = '';
+  JOBS.forEach(job => {
+    const hired = game.hiredJobs.includes(job.id);
+    const selected = game.selectedJobId === job.id;
+    const pay = currentPay(job.id);
+    const cd = currentCooldown(job.id);
+    const { upg, stamMaxLv, earnMaxLv } = getJobData(job.id);
+    
+    const item = document.createElement('div');
+    item.className = 'job-item' + (hired ? ' hired' : '') + (selected ? ' selected' : '');
+    item.id = 'job-card-' + job.id;
+
+    const statsHtml = hired
+      ? '<div class="job-stats">' +
+          '<span><span class="label">Pay:</span> <span id="job-' + job.id + '-pay">' + formatMoney(pay) + '</span></span>' +
+          '<span><span class="label">Cooldown:</span> <span id="job-' + job.id + '-cd">' + (cd / 1000).toFixed(1) + 's</span></span>' +
+        '</div>'
+      : '<div class="job-stats"><span><span class="label">Base pay:</span> ' + formatMoney(job.basePay) + '</span></div>';
+
+    let actionsHtml = '';
+    if (hired) {
+      actionsHtml = 
+        '<button class="select-btn" ' + (selected ? 'disabled' : '') + ' onclick="selectJob(\'' + job.id + '\')">' + (selected ? 'Selected' : 'Select') + '</button>' +
+        '<button class="upgrade-btn" id="toggle-' + job.id + '" onclick="toggleUpgradePanel(\'' + job.id + '\')">Upgrade</button>';
+    } else {
+      actionsHtml = '<button class="hire-btn" onclick="hireJob(\'' + job.id + '\')">Hire — ' + formatMoney(job.hireCost) + '</button>';
+    }
+
+    item.innerHTML =
+      '<div class="job-header">' +
+        '<div class="job-info">' +
+          '<div class="job-name">' + job.name + '</div>' +
+          '<div class="job-desc">' + job.desc + '</div>' +
+          statsHtml +
+        '</div>' +
+        '<div class="job-actions">' + actionsHtml + '</div>' +
+      '</div>' +
+      (hired ? renderUpgradePanelHTML(job.id, upg, stamMaxLv, earnMaxLv) : '');
+      
+    list.appendChild(item);
+  });
+}
+
+function renderUpgradePanelHTML(jobId, upg, stamMaxLv, earnMaxLv) {
+  const stamMaxed = upg.stamina >= stamMaxLv;
+  const earnMaxed = upg.earnings >= earnMaxLv;
+  const stamC = staminaCost(jobId);
+  const earnC = earningsCost(jobId);
+  const canStam = !stamMaxed && game.money >= stamC;
+  const canEarn = !earnMaxed && game.money >= earnC;
+  
+  const { job } = getJobData(jobId);
+  const cd = currentCooldown(jobId);
+  const nextCd = Math.max(job.maxCd, cd - job.cdStep);
+  const pay = currentPay(jobId);
+  const nextPay = Math.min(job.maxPay, round2(pay + job.payStep));
+
+  return '<div class="upgrade-wrapper" id="upg-wrap-' + jobId + '">' +
+    '<div class="upgrade-inner">' +
+      '<div class="upg-item">' +
+        '<div class="upg-info">' +
+          '<div class="upg-title">Stamina Training <span id="upg-' + jobId + '-stam-lv">Lv ' + upg.stamina + ' / ' + stamMaxLv + '</span></div>' +
+          '<div class="upg-effect">-' + (job.cdStep/1000).toFixed(1) + 's cooldown per level</div>' +
+          '<div class="upg-stats" id="upg-' + jobId + '-stam-stats">' + (cd/1000).toFixed(1) + 's → ' + (nextCd/1000).toFixed(1) + 's</div>' +
+        '</div>' +
+        '<button class="upg-buy' + (stamMaxed ? ' maxed' : '') + '" id="upg-' + jobId + '-stam-btn" ' +
+          (stamMaxed ? '' : (canStam ? '' : 'disabled')) + ' onclick="buyUpgrade(\'' + jobId + '\', \'stamina\')">' +
+          (stamMaxed ? 'MAXED' : formatMoney(stamC)) +
+        '</button>' +
+      '</div>' +
+      '<div class="upg-item">' +
+        '<div class="upg-info">' +
+          '<div class="upg-title">Earnings Training <span id="upg-' + jobId + '-earn-lv">Lv ' + upg.earnings + ' / ' + earnMaxLv + '</span></div>' +
+          '<div class="upg-effect">+' + formatMoney(job.payStep) + ' pay per level</div>' +
+          '<div class="upg-stats" id="upg-' + jobId + '-earn-stats">' + formatMoney(pay) + ' → ' + formatMoney(nextPay) + '</div>' +
+        '</div>' +
+        '<button class="upg-buy' + (earnMaxed ? ' maxed' : '') + '" id="upg-' + jobId + '-earn-btn" ' +
+          (earnMaxed ? '' : (canEarn ? '' : 'disabled')) + ' onclick="buyUpgrade(\'' + jobId + '\', \'earnings\')">' +
+          (earnMaxed ? 'MAXED' : formatMoney(earnC)) +
+        '</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleUpgradePanel(jobId) {
+  const wrapper = document.getElementById('upg-wrap-' + jobId);
+  if (wrapper) wrapper.classList.toggle('open');
+}
+
+function selectJob(jobId) {
+  if (game.selectedJobId === jobId) return;
+  game.selectedJobId = jobId;
+  saveGame();
+
+  document.querySelectorAll('.job-item').forEach(el => {
+    if (el.id === 'job-card-' + jobId) {
+      el.classList.add('selected');
+      const btn = el.querySelector('.select-btn');
+      if (btn) {
+        btn.textContent = 'Selected';
+        btn.disabled = true;
+      }
+    } else {
+      el.classList.remove('selected');
+      const btn = el.querySelector('.select-btn');
+      if (btn) {
+        btn.textContent = 'Select';
+        btn.disabled = false;
+      }
+    }
+  });
+
+  updateWorkButton();
+}
+
+function hireJob(jobId) {
+  const job = JOBS.find(j => j.id === jobId);
+  if (!job || game.hiredJobs.includes(jobId)) return;
+  if (game.money < job.hireCost) return;
+  
+  game.money = round2(game.money - job.hireCost);
+  game.hiredJobs.push(jobId);
+  if (!game.selectedJobId) game.selectedJobId = jobId;
+  
+  if (!game.jobUpgrades[jobId]) {
+    game.jobUpgrades[jobId] = { stamina: 0, earnings: 0 };
+  }
+  saveGame();
+  
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderJobs();
+  updateWorkButton();
+  updateHint();
+  
+  setTimeout(() => {
+    const p = document.getElementById('upg-wrap-' + jobId);
+    if(p) p.classList.add('open');
+  }, 10);
+}
+
+function buyUpgrade(jobId, type) {
+  const { upg, stamMaxLv, earnMaxLv } = getJobData(jobId);
+  let cost, maxed;
+  if (type === 'stamina') {
+    maxed = upg.stamina >= stamMaxLv;
+    cost = staminaCost(jobId);
+  } else {
+    maxed = upg.earnings >= earnMaxLv;
+    cost = earningsCost(jobId);
+  }
+  if (maxed || game.money < cost) return;
+  
+  game.money = round2(game.money - cost);
+  upg[type]++;
+  saveGame();
+  
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  
+  const { job } = getJobData(jobId);
+  const pay = currentPay(jobId);
+  const cd = currentCooldown(jobId);
+  
+  document.getElementById('job-' + jobId + '-pay').textContent = formatMoney(pay);
+  document.getElementById('job-' + jobId + '-cd').textContent = (cd / 1000).toFixed(1) + 's';
+  
+  if (type === 'stamina') {
+    document.getElementById('upg-' + jobId + '-stam-lv').textContent = 'Lv ' + upg.stamina + ' / ' + stamMaxLv;
+    const nextCd = Math.max(job.maxCd, cd - job.cdStep);
+    document.getElementById('upg-' + jobId + '-stam-stats').textContent = (cd/1000).toFixed(1) + 's → ' + (nextCd/1000).toFixed(1) + 's';
+    const btn = document.getElementById('upg-' + jobId + '-stam-btn');
+    if (upg.stamina >= stamMaxLv) {
+      btn.textContent = 'MAXED'; btn.classList.add('maxed'); btn.disabled = false;
+    } else {
+      const c = staminaCost(jobId);
+      btn.textContent = formatMoney(c);
+      btn.disabled = game.money < c;
+    }
+  } else {
+    document.getElementById('upg-' + jobId + '-earn-lv').textContent = 'Lv ' + upg.earnings + ' / ' + earnMaxLv;
+    const nextPay = Math.min(job.maxPay, round2(pay + job.payStep));
+    document.getElementById('upg-' + jobId + '-earn-stats').textContent = formatMoney(pay) + ' → ' + formatMoney(nextPay);
+    const btn = document.getElementById('upg-' + jobId + '-earn-btn');
+    if (upg.earnings >= earnMaxLv) {
+      btn.textContent = 'MAXED'; btn.classList.add('maxed'); btn.disabled = false;
+    } else {
+      const c = earningsCost(jobId);
+      btn.textContent = formatMoney(c);
+      btn.disabled = game.money < c;
+    }
+  }
+  
+  updateAllBuyButtons();
+}
+
+function updateAllBuyButtons() {
+  JOBS.forEach(j => {
+    if (game.hiredJobs.includes(j.id)) {
+      const oStamBtn = document.getElementById('upg-' + j.id + '-stam-btn');
+      const oEarnBtn = document.getElementById('upg-' + j.id + '-earn-btn');
+      if (oStamBtn && !oStamBtn.classList.contains('maxed')) oStamBtn.disabled = game.money < staminaCost(j.id);
+      if (oEarnBtn && !oEarnBtn.classList.contains('maxed')) oEarnBtn.disabled = game.money < earningsCost(j.id);
+    }
+  });
+  const shopBtn = document.getElementById('shop-premium-buy');
+  if (shopBtn && shopBtn.classList.contains('can-buy')) {
+    shopBtn.disabled = game.money < getPremiumPrice();
+  }
+}
+
+function updateHint() {
+  const hint = document.getElementById('workHint');
+  if (!game.hiredJobs.length) {
+    hint.textContent = 'Hire a job to begin earning.';
+    hint.classList.remove('hidden');
+  } else {
+    hint.classList.add('hidden');
+  }
+}
+
+function updateBonusText() {
+  const el = document.getElementById('bonusText');
+  if (game.premiumLevel > 0 && game.hiredJobs.length > 0) {
+    const clicksMod = game.workClicks % 10;
+    if (clicksMod === 9) {
+      el.textContent = 'Premium: next act (x' + getPremiumMult().toFixed(1) + ')';
+    } else {
+      el.textContent = 'Premium in: ' + (10 - clicksMod) + ' acts (x' + getPremiumMult().toFixed(1) + ')';
+    }
+  } else {
+    el.textContent = '';
+  }
+}
+
+function updateWorkButton() {
+  const btn = document.getElementById('workBtn');
+  const onCooldown = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
+  btn.disabled = game.hiredJobs.length === 0 || !game.selectedJobId || !!onCooldown;
+}
+
+function doWork() {
+  if (!game || !game.selectedJobId) return;
+  const now = Date.now();
+  if (game.workCooldownEnd && now < game.workCooldownEnd) return;
+  
+  const job = JOBS.find(j => j.id === game.selectedJobId);
+  if (!job) return;
+  
+  game.workClicks++;
+  let pay = currentPay(job.id);
+  let mult = 1;
+  
+  if (game.premiumLevel > 0 && game.workClicks % 10 === 0) {
+    mult = getPremiumMult();
+    pay = round2(pay * mult);
+  }
+  
+  const cd = currentCooldown(job.id);
+  game.money = round2(game.money + pay);
+  game.workCooldownEnd = now + cd;
+  game.lastCooldownDuration = cd;
+  saveGame();
+  
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  showFloatingMoney(pay, mult);
+  updateWorkButton();
+  updateAllBuyButtons();
+  updateBonusText();
+  
+  startCooldownTicker(cd);
+}
+
+function showFloatingMoney(amount, mult) {
+  const container = document.getElementById('balanceContainer');
+  const el = document.createElement('div');
+  el.className = 'floating-money';
+  el.innerHTML = '+' + formatMoney(amount) + (mult > 1 ? '<span class="mult-text">(x' + mult.toFixed(1) + ')</span>' : '');
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function startCooldownTicker(totalDuration) {
+  const bar = document.getElementById('cooldownBar');
+  const fill = document.getElementById('cooldownFill');
+  const text = document.getElementById('cooldownText');
+  const btn = document.getElementById('workBtn');
+  const total = totalDuration || game.lastCooldownDuration || 5000;
+  
+  bar.classList.remove('inactive');
+  btn.disabled = true;
+  
+  if (cooldownInterval) clearInterval(cooldownInterval);
+  
+  cooldownInterval = setInterval(() => {
+    const now = Date.now();
+    if (game.workCooldownEnd && now < game.workCooldownEnd) {
+      const remaining = game.workCooldownEnd - now;
+      const pct = 1 - remaining / total;
+      fill.style.width = Math.min(100, Math.max(0, pct * 100)) + '%';
+      text.textContent = (remaining / 1000).toFixed(1) + 's';
+    } else {
+      if (game.workCooldownEnd) {
+        game.workCooldownEnd = 0;
+        saveGame();
+      }
+      fill.style.width = '0%';
+      text.textContent = '0.0s';
+      bar.classList.add('inactive');
+      clearInterval(cooldownInterval);
+      cooldownInterval = null;
+      updateWorkButton();
+    }
+  }, 50);
+}
+
+function renderShop() {
+  if (!game) return;
+  const lvl = getPremiumLevel();
+  const mult = getPremiumMult();
+  const price = getPremiumPrice();
+  const maxed = lvl >= PREMIUM_MAX_LEVEL;
+  
+  const currentEl = document.getElementById('shop-premium-current');
+  const buyBtn = document.getElementById('shop-premium-buy');
+  
+  if (lvl > 0) {
+    currentEl.textContent = 'Level ' + lvl + ' (x' + mult.toFixed(1) + ' every 10 acts)';
+  } else {
+    currentEl.textContent = 'Not owned';
+  }
+  
+  if (maxed) {
+    buyBtn.textContent = 'MAXED';
+    buyBtn.disabled = true;
+    buyBtn.classList.add('maxed');
+    buyBtn.classList.remove('can-buy');
+  } else {
+    buyBtn.textContent = (lvl === 0 ? 'Buy — ' : 'Upgrade — ') + formatMoney(price);
+    buyBtn.disabled = game.money < price;
+    buyBtn.classList.remove('maxed');
+    buyBtn.classList.add('can-buy');
+  }
+}
+
+function buyPremium() {
+  if (game.premiumLevel >= PREMIUM_MAX_LEVEL) return;
+  const price = getPremiumPrice();
+  if (game.money < price) return;
+  
+  game.money = round2(game.money - price);
+  game.premiumLevel++;
+  saveGame();
+  
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
+  updateAllBuyButtons();
+  updateBonusText();
+}
+
+function backToMenu() {
+  if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
+  const bar = document.getElementById('cooldownBar');
+  bar.classList.add('inactive');
+  document.getElementById('cooldownFill').style.width = '0%';
+  document.getElementById('cooldownText').textContent = '0.0s';
+  showMenu();
+}
+
+setInterval(() => {
+  if (!playTimer) {
+    const gStats = getGlobalStats();
+    gStats.totalPlayTime++;
+    writeGlobalStats(gStats);
+  }
+}, 1000);
+
+showMenu();
+</script>
+</body>
+</html>

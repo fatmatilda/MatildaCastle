@@ -512,6 +512,9 @@
     margin-bottom: 12px;
     letter-spacing: 1px;
     font-variant-numeric: tabular-nums;
+    width: 100%;
+    text-align: left;
+    padding-left: 12px;
   }
 
   .job-list { 
@@ -1412,11 +1415,13 @@ function showChangelog() {
             '<li>Added "Your Room" tab with day/night cycle</li>' +
             '<li>Added Sleeping (8h, costs 5% tax) and Window checking</li>' +
             '<li>Night work penalty increased to 12.5x</li>' +
-            '<li>Slaves earn at night, but lose their earnings if caught</li>' +
+            '<li>Slaves earn at night, but lose earnings if caught</li>' +
             '<li>Added 30s cooldown upon being caught</li>' +
             '<li>Added Clock to Shop (track time)</li>' +
             '<li>Red floating text for money deductions</li>' +
             '<li>Collapsible changelog details</li>' +
+            '<li>Fixed time alignment and sun/moon trajectory</li>' +
+            '<li>Fixed night penalty not applying to Plate Sorting</li>' +
           '</ul>' +
         '</div>' +
       '</div>' +
@@ -1744,7 +1749,7 @@ function sleep() {
         overlay.style.pointerEvents = 'none';
       };
       
-      const costText = cost > 0 ? '<div style="font-size: 12px; color: #b8a37a;">Tax paid: ' + formatMoney(cost) + ' (5%)</div>' : '';
+      const costText = cost > 0 ? '<div style="font-size: 12px; color: #b8a37a; margin-top: 4px;">Tax paid: ' + formatMoney(cost) + ' (5%)</div>' : '';
       
       showModal('Slept', 
         '<div style="font-size: 16px; color: #e8e3d8; margin-bottom: 8px;">You slept for 8 hours.</div>' + costText, 
@@ -1890,6 +1895,40 @@ function renderPlateGrid() {
 function clickPlate(num, btn) {
   if (!game || game.selectedJobId !== 'plates' || game.slaves['plates']) return;
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) return;
+
+  const isNight = game.timeMinutes >= 0 && game.timeMinutes < 360;
+  if (isNight) {
+    const job = JOBS.find(j => j.id === 'plates');
+    let basePenalty = round2(currentPay(job.id) * 12.5);
+    let slavePenalty = game.slaveNightEarnings || 0;
+    let totalPenalty = round2(basePenalty + slavePenalty);
+
+    game.money = round2(Math.max(0, game.money - totalPenalty));
+    game.slaveNightEarnings = 0;
+    game.workCooldownEnd = Date.now() + 30000;
+    game.lastCooldownDuration = 30000;
+
+    saveGame();
+    document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+    showFloatingPenalty(totalPenalty);
+
+    const slaveText = slavePenalty > 0 ? '<div style="font-size: 11px; color: #8a7fa5; margin-bottom: 12px;">(Includes ' + formatMoney(slavePenalty) + ' from your slaves\' night shift)</div>' : '';
+
+    showModal('Caught!',
+      '<div style="font-size: 13px; color: #b8a3d0; margin-bottom: 16px;">Matilda caught you working at night! She fined you:</div>' +
+      '<div style="font-size: 36px; color: #b85a7a; font-weight: bold; text-shadow: 0 0 15px rgba(184,90,122,0.5); margin-bottom: 8px;">-' + formatMoney(totalPenalty) + '</div>' +
+      slaveText +
+      '<div style="font-size: 11px; color: #6b5a8a; font-style: italic;">You are locked out of work for 30s. Tip: check the time and sleep in Your Room.</div>',
+      'Accept', null, () => {
+        closeModal();
+        startCooldownTicker(30000);
+      }, closeModal, 'small-modal');
+
+    generatePlateLayout(currentPlates('plates'));
+    renderPlateGrid();
+    updateWorkButton();
+    return;
+  }
   
   if (num === game.plateCurrentTarget) {
     game.plateCurrentTarget++;

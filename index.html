@@ -344,7 +344,7 @@
     height: 100%;
     min-height: 360px;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
   }
   .col-right {
     flex: 1.4 1 400px;
@@ -374,6 +374,7 @@
     border-radius: 3px;
     backdrop-filter: none;
     transition: all 0.2s ease;
+    margin-top: 20px;
   }
   .work-btn:hover:not(:disabled) {
     background: linear-gradient(180deg, #7a5a9a, #3a2a5a);
@@ -392,6 +393,58 @@
     transform: none;
     box-shadow: none;
   }
+
+  .plate-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    width: 100%;
+  }
+  .plate-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 320px;
+    padding: 10px;
+    background: rgba(10, 5, 20, 0.5);
+    border: 1px solid #3a3350;
+    border-radius: 6px;
+  }
+  .plate-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0;
+    border: 1px solid #7a5a9a;
+    background: rgba(30, 20, 50, 0.8);
+    color: #d4b8ff;
+    transition: all 0.15s;
+    letter-spacing: 0;
+  }
+  .plate-btn:hover:not(:disabled) {
+    background: #4a2a6a;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(160, 100, 220, 0.6);
+    transform: scale(1.1);
+    letter-spacing: 0;
+  }
+  .plate-btn.error {
+    background: #b85a7a;
+    border-color: #f3c8d8;
+    color: #fff;
+  }
+  .plate-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
   .cooldown-container {
     margin-top: 22px;
     width: 100%;
@@ -523,7 +576,7 @@
     will-change: max-height;
   }
   .upgrade-wrapper.open {
-    max-height: 300px;
+    max-height: 350px;
     opacity: 1;
     border-top-color: #2a2038;
   }
@@ -617,7 +670,8 @@
   .modal {
     max-width: 460px;
     width: 100%;
-    max-height: 90vh;
+    height: 80vh;
+    max-height: 80vh;
     display: flex;
     flex-direction: column;
     padding: 28px;
@@ -660,13 +714,26 @@
   .modal-actions .confirm { border-color: #b85a7a; color: #f3c8d8; }
   .modal-actions .confirm:hover { background: rgba(184, 90, 122, 0.3); border-color: #f3c8d8; color: #fff; }
   
-  .changelog-content { text-align: left; font-size: 13px; color: #b8a3d0; line-height: 1.5; overflow-y: auto; flex: 1; padding-right: 10px; }
-  .changelog-content h3 { font-size: 14px; color: #f3e6c8; margin-bottom: 4px; font-weight: normal; border-bottom: 1px solid #3a3350; padding-bottom: 4px; margin-top: 12px; }
+  .changelog-content { 
+    text-align: left; 
+    font-size: 13px; 
+    color: #b8a3d0; 
+    line-height: 1.6; 
+    overflow-y: auto; 
+    flex: 1; 
+    padding-right: 12px; 
+    margin-bottom: 10px;
+  }
+  .changelog-content h3 { font-size: 14px; color: #f3e6c8; margin-bottom: 4px; font-weight: normal; border-bottom: 1px solid #3a3350; padding-bottom: 4px; margin-top: 16px; }
+  .changelog-content h3:first-child { margin-top: 0; }
   .changelog-content ul { padding-left: 18px; margin-bottom: 12px; }
   .changelog-content li { margin-bottom: 4px; }
   .changelog-content .date { font-size: 11px; color: #8a7fa5; font-style: italic; margin-bottom: 8px; display: block; }
+  
   .changelog-content::-webkit-scrollbar { width: 6px; }
+  .changelog-content::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; }
   .changelog-content::-webkit-scrollbar-thumb { background: #3a3350; border-radius: 3px; }
+  .changelog-content::-webkit-scrollbar-thumb:hover { background: #6b5a8a; }
 
   .stats-tabs {
     display: flex;
@@ -766,7 +833,7 @@
       <button class="menu-btn" onclick="showStats()">Statistics</button>
     </div>
     <div class="bottom-right-corner">
-      <div class="version-text">v0.1.1</div>
+      <div class="version-text">v0.1.2</div>
       <button class="changelog-btn" onclick="showChangelog()">Changelog</button>
     </div>
   </div>
@@ -822,7 +889,12 @@
       <div class="tab-panel active" id="panel-work">
         <div class="col-left">
           <div class="section-label">Work</div>
+          
           <button id="workBtn" class="work-btn" disabled onclick="doWork()">Work</button>
+          
+          <div class="plate-container hidden" id="plateContainer">
+            <div class="plate-grid" id="plateGrid"></div>
+          </div>
           
           <div class="cooldown-container">
             <div class="cooldown-bar inactive" id="cooldownBar">
@@ -904,6 +976,24 @@ const JOBS = [
     cdStep: 500,
     stamBase: 3, stamMult: 1.25,
     earnBase: 2, earnMult: 1.22
+  },
+  {
+    id: 'plates',
+    name: 'Plate Sorting',
+    desc: 'Arrange plates in order. One mistake resets the sequence.',
+    hireCost: 400.00,
+    basePay: 12.00,
+    baseCd: 12000,
+    maxPay: 28.00,
+    maxCd: 5000,
+    payStep: 0.80,
+    cdStep: 500,
+    stamBase: 50, stamMult: 1.3,
+    earnBase: 40, earnMult: 1.3,
+    basePlates: 16,
+    minPlates: 10,
+    plateStep: 1,
+    plateBase: 100, plateMult: 1.4
   }
 ];
 
@@ -963,10 +1053,14 @@ function getPremiumPrice() {
 
 function getJobData(jobId) {
   const job = JOBS.find(j => j.id === jobId);
-  const upg = (game && game.jobUpgrades[jobId]) || { stamina: 0, earnings: 0 };
+  const upg = (game && game.jobUpgrades[jobId]) || { stamina: 0, earnings: 0, plates: 0 };
+  if (upg.plates === undefined) upg.plates = 0;
+  
   const stamMaxLv = Math.floor((job.baseCd - job.maxCd) / job.cdStep);
   const earnMaxLv = Math.floor((job.maxPay - job.basePay) / job.payStep);
-  return { job, upg, stamMaxLv, earnMaxLv };
+  const plateMaxLv = job.basePlates ? Math.floor((job.basePlates - job.minPlates) / job.plateStep) : 0;
+  
+  return { job, upg, stamMaxLv, earnMaxLv, plateMaxLv };
 }
 
 function currentCooldown(jobId) {
@@ -977,6 +1071,12 @@ function currentPay(jobId) {
   const { job, upg } = getJobData(jobId);
   return Math.min(job.maxPay, round2(job.basePay + upg.earnings * job.payStep));
 }
+function currentPlates(jobId) {
+  const { job, upg } = getJobData(jobId);
+  if (!job.basePlates) return 0;
+  return Math.max(job.minPlates, job.basePlates - upg.plates * job.plateStep);
+}
+
 function staminaCost(jobId) {
   const { job, upg } = getJobData(jobId);
   return round2(job.stamBase * Math.pow(job.stamMult, upg.stamina));
@@ -985,8 +1085,16 @@ function earningsCost(jobId) {
   const { job, upg } = getJobData(jobId);
   return round2(job.earnBase * Math.pow(job.earnMult, upg.earnings));
 }
+function platesCost(jobId) {
+  const { job, upg } = getJobData(jobId);
+  if (!job.plateBase) return 0;
+  return round2(job.plateBase * Math.pow(job.plateMult, upg.plates));
+}
 function slaveCost(jobId) {
-  return round2((staminaCost(jobId) + earningsCost(jobId)) * 1.25);
+  const { job } = getJobData(jobId);
+  let base = staminaCost(jobId) + earningsCost(jobId);
+  if (job.basePlates) base += platesCost(jobId);
+  return round2(base * 1.25);
 }
 
 function getSave() {
@@ -1027,7 +1135,8 @@ function normalizeState(s) {
       const u = s.jobUpgrades[k] || {};
       upgrades[k] = {
         stamina: Math.max(0, Number(u.stamina) || 0),
-        earnings: Math.max(0, Number(u.earnings) || 0)
+        earnings: Math.max(0, Number(u.earnings) || 0),
+        plates: Math.max(0, Number(u.plates) || 0)
       };
     });
   }
@@ -1044,7 +1153,9 @@ function normalizeState(s) {
     lastCooldownDuration: typeof s.lastCooldownDuration === 'number' ? s.lastCooldownDuration : 5000,
     playTime: typeof s.playTime === 'number' ? s.playTime : 0,
     workClicks: typeof s.workClicks === 'number' ? s.workClicks : 0,
-    premiumLevel: typeof s.premiumLevel === 'number' ? s.premiumLevel : 0
+    premiumLevel: typeof s.premiumLevel === 'number' ? s.premiumLevel : 0,
+    plateLayout: Array.isArray(s.plateLayout) ? s.plateLayout : [],
+    plateCurrentTarget: typeof s.plateCurrentTarget === 'number' ? s.plateCurrentTarget : 1
   };
 }
 
@@ -1088,6 +1199,11 @@ function showChangelog() {
   showModal(
     'Changelog',
     '<div class="changelog-content">' +
+      '<h3>v0.1.2</h3>' +
+      '<span class="date">October 19, 2026</span>' +
+      '<ul>' +
+        '<li>Added new job: Plate Sorting</li>' +
+      '</ul>' +
       '<h3>v0.1.1</h3>' +
       '<span class="date">October 19, 2026</span>' +
       '<ul>' +
@@ -1101,7 +1217,7 @@ function showChangelog() {
       '<ul>' +
         '<li>Initial release</li>' +
         '<li>Added Chapter I: Escape from Castle</li>' +
-        '<li>Introduced first jobs (Carry Boxes, Wash Dishes)</li>' +
+        '<li>Added core jobs (Carry Boxes, Wash Dishes)</li>' +
       '</ul>' +
     '</div>',
     'Close',
@@ -1199,7 +1315,9 @@ function startNewGame() {
     lastCooldownDuration: 5000,
     playTime: 0,
     workClicks: 0,
-    premiumLevel: 0
+    premiumLevel: 0,
+    plateLayout: [],
+    plateCurrentTarget: 1
   };
   writeSave(data);
   
@@ -1257,7 +1375,8 @@ function processSlaves() {
       if (now >= game.slaveNextWork[job.id]) {
         let pay = currentPay(job.id);
         game.money = round2(game.money + pay);
-        game.slaveNextWork[job.id] = now + currentCooldown(job.id);
+        const cd = job.id === 'plates' ? 10000 : currentCooldown(job.id);
+        game.slaveNextWork[job.id] = now + cd;
         showFloatingMoney(pay, 1, true);
         changed = true;
       }
@@ -1276,7 +1395,8 @@ function processSlaves() {
 function updateSelectedCooldownUI() {
   if (!game.selectedJobId) return;
   const jobId = game.selectedJobId;
-  const cd = currentCooldown(jobId);
+  const job = JOBS.find(j => j.id === jobId);
+  const cd = job.id === 'plates' ? 10000 : currentCooldown(job.id);
   const nextWork = game.slaveNextWork[jobId] || Date.now();
   const remaining = Math.max(0, nextWork - Date.now());
   const pct = 1 - remaining / cd;
@@ -1312,6 +1432,103 @@ function renderGame() {
   updateWorkButton();
   updateHint();
   updateBonusText();
+  renderWorkArea();
+}
+
+function renderWorkArea() {
+  const isPlateJob = game.selectedJobId === 'plates' && !game.slaves['plates'];
+  const workBtn = document.getElementById('workBtn');
+  const plateContainer = document.getElementById('plateContainer');
+  
+  if (isPlateJob) {
+    workBtn.classList.add('hidden');
+    plateContainer.classList.remove('hidden');
+    
+    const maxPlates = currentPlates('plates');
+    if (!game.plateLayout || game.plateLayout.length !== maxPlates) {
+      generatePlateLayout(maxPlates);
+    }
+    renderPlateGrid();
+  } else {
+    workBtn.classList.remove('hidden');
+    plateContainer.classList.add('hidden');
+  }
+}
+
+function generatePlateLayout(count) {
+  const arr = Array.from({ length: count }, (_, i) => i + 1);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  game.plateLayout = arr;
+  game.plateCurrentTarget = 1;
+}
+
+function renderPlateGrid() {
+  const grid = document.getElementById('plateGrid');
+  grid.innerHTML = '';
+  const isCooldown = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
+  
+  game.plateLayout.forEach(num => {
+    const btn = document.createElement('button');
+    btn.className = 'plate-btn';
+    btn.textContent = num;
+    btn.disabled = isCooldown || num < game.plateCurrentTarget;
+    btn.onclick = () => clickPlate(num, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function clickPlate(num, btn) {
+  if (!game || game.selectedJobId !== 'plates' || game.slaves['plates']) return;
+  if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) return;
+  
+  if (num === game.plateCurrentTarget) {
+    game.plateCurrentTarget++;
+    const maxPlates = currentPlates('plates');
+    if (game.plateCurrentTarget > maxPlates) {
+      finishPlateJob();
+    } else {
+      btn.disabled = true;
+      saveGame();
+    }
+  } else {
+    btn.classList.add('error');
+    game.plateCurrentTarget = 1;
+    saveGame();
+    setTimeout(() => {
+      generatePlateLayout(currentPlates('plates'));
+      renderPlateGrid();
+    }, 300);
+  }
+}
+
+function finishPlateJob() {
+  game.workClicks++;
+  let pay = currentPay('plates');
+  let mult = 1;
+  
+  if (game.premiumLevel > 0 && game.workClicks % 10 === 0) {
+    mult = getPremiumMult();
+    pay = round2(pay * mult);
+  }
+  
+  const cd = currentCooldown('plates');
+  game.money = round2(game.money + pay);
+  game.workCooldownEnd = Date.now() + cd;
+  game.lastCooldownDuration = cd;
+  
+  generatePlateLayout(currentPlates('plates'));
+  saveGame();
+  
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  showFloatingMoney(pay, mult, false);
+  updateWorkButton();
+  updateAllBuyButtons();
+  updateBonusText();
+  renderPlateGrid();
+  startCooldownTicker(cd);
 }
 
 function renderJobs() {
@@ -1322,13 +1539,13 @@ function renderJobs() {
     const selected = game.selectedJobId === job.id;
     const pay = currentPay(job.id);
     const cd = currentCooldown(job.id);
-    const { upg, stamMaxLv, earnMaxLv } = getJobData(job.id);
+    const { upg, stamMaxLv, earnMaxLv, plateMaxLv } = getJobData(job.id);
     
     const item = document.createElement('div');
     item.className = 'job-item' + (hired ? ' hired' : '') + (selected ? ' selected' : '');
     item.id = 'job-card-' + job.id;
 
-    const statsHtml = hired
+    let statsHtml = hired
       ? '<div class="job-stats">' +
           '<span><span class="label">Pay:</span> <span id="job-' + job.id + '-pay">' + formatMoney(pay) + '</span></span>' +
           '<span><span class="label">Cooldown:</span> <span id="job-' + job.id + '-cd">' + (cd / 1000).toFixed(1) + 's</span></span>' +
@@ -1354,26 +1571,27 @@ function renderJobs() {
         '</div>' +
         '<div class="job-actions">' + actionsHtml + '</div>' +
       '</div>' +
-      (hired ? renderUpgradePanelHTML(job.id, upg, stamMaxLv, earnMaxLv) : '');
+      (hired ? renderUpgradePanelHTML(job.id, upg, stamMaxLv, earnMaxLv, plateMaxLv) : '');
       
     list.appendChild(item);
   });
 }
 
-function renderUpgradePanelHTML(jobId, upg, stamMaxLv, earnMaxLv) {
+function renderUpgradePanelHTML(jobId, upg, stamMaxLv, earnMaxLv, plateMaxLv) {
   const isOpen = openUpgradePanels[jobId] ? ' open' : '';
   return '<div class="upgrade-wrapper' + isOpen + '" id="upg-wrap-' + jobId + '">' +
     '<div class="upgrade-inner">' +
-      renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) +
+      renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv, plateMaxLv) +
     '</div>' +
   '</div>';
 }
 
-function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) {
+function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv, plateMaxLv) {
   const isSlave = !!game.slaves[jobId];
   const stamMaxed = upg.stamina >= stamMaxLv;
   const earnMaxed = upg.earnings >= earnMaxLv;
-  const allMaxed = stamMaxed && earnMaxed;
+  const platesMaxed = upg.plates >= plateMaxLv;
+  const allMaxed = stamMaxed && earnMaxed && (plateMaxLv === 0 || platesMaxed);
   
   const { job } = getJobData(jobId);
   const cd = currentCooldown(jobId);
@@ -1410,6 +1628,24 @@ function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) {
         (earnMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : 
           '<button class="upg-buy" id="upg-earn-btn-' + jobId + '" onclick="buyUpgrade(\'' + jobId + '\', \'earnings\')" ' + (canEarn ? '' : 'disabled') + '>' + formatMoney(earnC) + '</button>') +
       '</div>';
+
+    if (job.basePlates) {
+      const plates = currentPlates(jobId);
+      const nextPlates = Math.max(job.minPlates, plates - job.plateStep);
+      const platesC = platesCost(jobId);
+      const canPlates = !platesMaxed && game.money >= platesC;
+      
+      html += 
+        '<div class="upg-item">' +
+          '<div class="upg-info">' +
+            '<div class="upg-title">Capacity <span>Lv ' + upg.plates + ' / ' + plateMaxLv + '</span></div>' +
+            '<div class="upg-effect">-' + job.plateStep + ' plates per level</div>' +
+            '<div class="upg-stats">' + plates + ' plates → ' + nextPlates + ' plates</div>' +
+          '</div>' +
+          (platesMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : 
+            '<button class="upg-buy" id="upg-plates-btn-' + jobId + '" onclick="buyUpgrade(\'' + jobId + '\', \'plates\')" ' + (canPlates ? '' : 'disabled') + '>' + formatMoney(platesC) + '</button>') +
+        '</div>';
+    }
   }
 
   if (isSlave) {
@@ -1417,10 +1653,11 @@ function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) {
   } else if (game.hasSlaveLicense) {
     const sCost = slaveCost(jobId);
     const canSlave = allMaxed && game.money >= sCost;
+    const slaveHint = jobId === 'plates' ? ' (Fixed 10s cooldown)' : '';
     html += '<div class="upg-item" style="border-top: 1px dashed #3a3350; padding-top: 8px; margin-top: 2px;">' +
       '<div class="upg-info">' +
         '<div class="upg-title">Slave</div>' +
-        '<div class="upg-effect">Automates this job permanently</div>' +
+        '<div class="upg-effect">Automates this job permanently' + slaveHint + '</div>' +
       '</div>' +
       '<button class="upg-buy" id="upg-slave-btn-' + jobId + '" ' + (canSlave ? '' : 'disabled') + ' onclick="buySlave(\'' + jobId + '\')">' + 
       (allMaxed ? 'Buy — ' + formatMoney(sCost) : 'Locked') + 
@@ -1443,8 +1680,14 @@ function selectJob(jobId) {
   if (game.selectedJobId === jobId || game.slaves[jobId]) return;
   game.selectedJobId = jobId;
   saveGame();
+  
+  if (jobId === 'plates') {
+    generatePlateLayout(currentPlates('plates'));
+  }
+  
   renderJobs();
   updateWorkButton();
+  renderWorkArea();
 }
 
 function hireJob(jobId) {
@@ -1457,27 +1700,36 @@ function hireJob(jobId) {
   if (!game.selectedJobId) game.selectedJobId = jobId;
   
   if (!game.jobUpgrades[jobId]) {
-    game.jobUpgrades[jobId] = { stamina: 0, earnings: 0 };
+    game.jobUpgrades[jobId] = { stamina: 0, earnings: 0, plates: 0 };
   }
   saveGame();
+  
+  if (jobId === 'plates') {
+    generatePlateLayout(currentPlates('plates'));
+  }
   
   document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
   openUpgradePanels[jobId] = true;
   renderJobs();
   updateWorkButton();
   updateHint();
+  renderWorkArea();
 }
 
 function buyUpgrade(jobId, type) {
-  const { upg, stamMaxLv, earnMaxLv } = getJobData(jobId);
+  const { upg, stamMaxLv, earnMaxLv, plateMaxLv } = getJobData(jobId);
   let cost, maxed;
   if (type === 'stamina') {
     maxed = upg.stamina >= stamMaxLv;
     cost = staminaCost(jobId);
-  } else {
+  } else if (type === 'earnings') {
     maxed = upg.earnings >= earnMaxLv;
     cost = earningsCost(jobId);
+  } else if (type === 'plates') {
+    maxed = upg.plates >= plateMaxLv;
+    cost = platesCost(jobId);
   }
+  
   if (maxed || game.money < cost) return;
   
   game.money = round2(game.money - cost);
@@ -1488,12 +1740,17 @@ function buyUpgrade(jobId, type) {
   document.getElementById('job-' + jobId + '-pay').textContent = formatMoney(currentPay(jobId));
   document.getElementById('job-' + jobId + '-cd').textContent = (currentCooldown(jobId) / 1000).toFixed(1) + 's';
   
+  if (jobId === 'plates' && type === 'plates') {
+    generatePlateLayout(currentPlates(jobId));
+  }
+  
   const inner = document.querySelector('#upg-wrap-' + jobId + ' .upgrade-inner');
   if (inner) {
-      inner.innerHTML = renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv);
+      inner.innerHTML = renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv, plateMaxLv);
   }
   
   updateAllBuyButtons();
+  renderWorkArea();
 }
 
 function buySlave(jobId) {
@@ -1503,7 +1760,7 @@ function buySlave(jobId) {
   
   game.money = round2(game.money - cost);
   game.slaves[jobId] = true;
-  game.slaveNextWork[jobId] = Date.now() + currentCooldown(jobId);
+  game.slaveNextWork[jobId] = Date.now() + (jobId === 'plates' ? 10000 : currentCooldown(jobId));
   
   if (game.selectedJobId === jobId) {
       game.selectedJobId = null;
@@ -1514,14 +1771,16 @@ function buySlave(jobId) {
   openUpgradePanels[jobId] = true;
   renderJobs();
   updateWorkButton();
+  renderWorkArea();
 }
 
 function updateAllBuyButtons() {
   JOBS.forEach(j => {
     if (game.hiredJobs.includes(j.id)) {
-      const { upg, stamMaxLv, earnMaxLv } = getJobData(j.id);
+      const { upg, stamMaxLv, earnMaxLv, plateMaxLv } = getJobData(j.id);
       const stamMaxed = upg.stamina >= stamMaxLv;
       const earnMaxed = upg.earnings >= earnMaxLv;
+      const platesMaxed = plateMaxLv === 0 || upg.plates >= plateMaxLv;
       
       if (!stamMaxed) {
         const btn = document.getElementById('upg-stam-btn-' + j.id);
@@ -1531,8 +1790,12 @@ function updateAllBuyButtons() {
         const btn = document.getElementById('upg-earn-btn-' + j.id);
         if (btn) btn.disabled = game.money < earningsCost(j.id);
       }
+      if (j.basePlates && !platesMaxed) {
+        const btn = document.getElementById('upg-plates-btn-' + j.id);
+        if (btn) btn.disabled = game.money < platesCost(j.id);
+      }
       
-      if (game.hasSlaveLicense && !game.slaves[j.id] && stamMaxed && earnMaxed) {
+      if (game.hasSlaveLicense && !game.slaves[j.id] && stamMaxed && earnMaxed && platesMaxed) {
         const btn = document.getElementById('upg-slave-btn-' + j.id);
         if (btn) btn.disabled = game.money < slaveCost(j.id);
       }
@@ -1578,6 +1841,8 @@ function updateWorkButton() {
 
 function doWork() {
   if (!game || !game.selectedJobId || game.slaves[game.selectedJobId]) return;
+  if (game.selectedJobId === 'plates') return;
+  
   const now = Date.now();
   if (game.workCooldownEnd && now < game.workCooldownEnd) return;
   
@@ -1626,6 +1891,7 @@ function startCooldownTicker(totalDuration) {
   
   bar.classList.remove('inactive');
   btn.disabled = true;
+  renderPlateGrid();
   
   if (cooldownInterval) clearInterval(cooldownInterval);
   
@@ -1647,6 +1913,7 @@ function startCooldownTicker(totalDuration) {
       clearInterval(cooldownInterval);
       cooldownInterval = null;
       updateWorkButton();
+      renderPlateGrid();
     }
   }, 50);
 }

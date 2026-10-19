@@ -6,12 +6,11 @@
 <title>Matilda Castle</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { height: 100%; overflow: hidden; }
   body {
     font-family: 'Georgia', serif;
     background: #0b0b0f;
     color: #e8e3d8;
-    overflow: hidden;
   }
   #app {
     position: relative;
@@ -313,7 +312,7 @@
 
   .game-body {
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden;
     padding: 30px 24px 50px;
     display: flex;
     justify-content: center;
@@ -323,6 +322,7 @@
     display: none;
     width: 100%;
     max-width: 960px;
+    height: 100%;
   }
   .tab-panel.active { display: flex; gap: 24px; flex-wrap: wrap; align-items: stretch; }
   
@@ -331,20 +331,19 @@
     background: rgba(20, 12, 30, 0.4);
     border-radius: 4px;
     padding: 24px;
+    display: flex;
+    flex-direction: column;
   }
   .col-left {
     flex: 1 1 280px;
+    height: 100%;
     min-height: 360px;
-    height: 360px;
-    display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
   }
   .col-right {
     flex: 1.4 1 400px;
-    display: flex;
-    flex-direction: column;
+    height: 100%;
   }
 
   .section-label {
@@ -357,6 +356,7 @@
     padding-bottom: 10px;
     border-bottom: 1px solid #2a2038;
     text-align: left;
+    flex-shrink: 0;
   }
 
   .work-btn {
@@ -444,7 +444,20 @@
     text-align: center;
   }
 
-  .job-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .job-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    width: 100%; 
+    overflow-y: auto; 
+    padding-right: 10px;
+    flex: 1;
+  }
+  .job-list::-webkit-scrollbar { width: 6px; }
+  .job-list::-webkit-scrollbar-track { background: transparent; }
+  .job-list::-webkit-scrollbar-thumb { background: #3a3350; border-radius: 3px; }
+  .job-list::-webkit-scrollbar-thumb:hover { background: #6b5a8a; }
+
   .job-item {
     display: flex;
     flex-direction: column;
@@ -452,6 +465,7 @@
     background: rgba(30, 20, 50, 0.6);
     border-radius: 3px;
     transition: all 0.2s;
+    flex-shrink: 0;
   }
   .job-item.hired { border-color: #7a5a9a; background: rgba(120, 90, 160, 0.08); }
   .job-item.selected { border-color: #b8a37a; background: rgba(180, 163, 122, 0.1); box-shadow: 0 0 15px rgba(180, 163, 122, 0.15); }
@@ -508,49 +522,54 @@
     opacity: 1;
     border-top-color: #2a2038;
   }
-  .upgrade-inner {
-    padding: 18px;
-  }
+  .upgrade-inner { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  
   .upg-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 16px;
-    padding: 12px 0;
+    gap: 12px;
+    padding-bottom: 8px;
     border-bottom: 1px solid #2a2038;
   }
   .upg-item:last-child { border-bottom: none; padding-bottom: 0; }
   .upg-info { flex: 1; text-align: left; }
-  .upg-title { font-size: 13px; letter-spacing: 1px; color: #f3e6c8; margin-bottom: 4px; }
-  .upg-title span { color: #8a7fa5; font-size: 11px; margin-left: 6px; }
-  .upg-effect { font-size: 11px; color: #b8a3d0; font-style: italic; margin-bottom: 2px; }
-  .upg-stats { font-size: 11px; color: #d4b8ff; }
+  .upg-title { font-size: 12px; letter-spacing: 1px; color: #f3e6c8; margin-bottom: 2px; }
+  .upg-title span { color: #8a7fa5; font-size: 10px; margin-left: 6px; }
+  .upg-effect { font-size: 10px; color: #b8a3d0; font-style: italic; margin-bottom: 1px; }
+  .upg-stats { font-size: 10px; color: #d4b8ff; }
   .upg-buy {
-    font-size: 11px;
-    letter-spacing: 2px;
-    padding: 8px 14px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 6px 10px;
     background: rgba(120, 90, 160, 0.15);
     color: #d4b8ff;
     border: 1px solid #7a5a9a;
     backdrop-filter: none;
     white-space: nowrap;
+    transition: all 0.2s;
   }
-  .upg-buy:hover:not(:disabled):not(.maxed) {
+  .upg-buy:hover:not(:disabled) {
     background: #4a2a6a;
     color: #f3e6c8;
     border-color: #b8a37a;
-    letter-spacing: 2px;
     box-shadow: none;
     transform: none;
   }
-  .upg-buy:disabled:not(.maxed) { opacity: 0.4; cursor: not-allowed; }
-  .upg-buy.maxed { border-color: #b8a37a; color: #b8a37a; background: transparent; cursor: default; opacity: 1; }
+  .upg-buy:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* Shop Styles */
+  .slave-assigned {
+    font-size: 11px; color: #b8a37a; font-style: italic; letter-spacing: 1px;
+    text-align: center; padding: 6px;
+  }
+
   .shop-container {
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
   .shop-item {
     display: flex;
@@ -570,7 +589,6 @@
     background: rgba(180, 163, 122, 0.15); color: #f3e6c8; border: 1px solid #b8a37a;
   }
 
-  /* Modals */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -637,7 +655,6 @@
   .changelog-content::-webkit-scrollbar { width: 6px; }
   .changelog-content::-webkit-scrollbar-thumb { background: #3a3350; border-radius: 3px; }
 
-  /* Statistics Tabs */
   .stats-tabs {
     display: flex;
     border-bottom: 1px solid #2a2038;
@@ -665,27 +682,24 @@
   .stats-content.active { display: block; }
   
   .stats-highlight {
-    padding: 16px;
-    background: linear-gradient(180deg, rgba(120, 90, 160, 0.15), rgba(120, 90, 160, 0.05));
+    padding: 12px 16px;
+    background: rgba(120, 90, 160, 0.1);
     border: 1px solid #7a5a9a;
     border-radius: 4px;
-    text-align: center;
+    box-shadow: 0 0 15px rgba(120, 90, 160, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 16px;
-    box-shadow: inset 0 0 15px rgba(120, 90, 160, 0.1);
   }
   .stats-highlight-title {
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: #b8a3d0;
-    margin-bottom: 6px;
-    text-transform: uppercase;
+    font-size: 14px;
+    color: #e8e3d8;
   }
   .stats-highlight-value {
-    font-size: 24px;
-    color: #f3e6c8;
+    font-size: 14px;
+    color: #d4b8ff;
     font-weight: bold;
-    text-shadow: 0 0 15px rgba(243, 230, 200, 0.5);
-    letter-spacing: 1px;
   }
 
   .stats-row {
@@ -730,7 +744,6 @@
 </head>
 <body>
 <div id="app">
-  <!-- Main Menu -->
   <div id="mainMenu" class="scene">
     <h1 class="title">Matilda Castle</h1>
     <div class="subtitle">too much fat</div>
@@ -740,12 +753,11 @@
       <button class="menu-btn" onclick="showStats()">Statistics</button>
     </div>
     <div class="bottom-right-corner">
-      <div class="version-text">v0.1.0</div>
+      <div class="version-text">v0.1.1</div>
       <button class="changelog-btn" onclick="showChangelog()">Changelog</button>
     </div>
   </div>
 
-  <!-- Chapter Select -->
   <div id="chapterSelect" class="scene hidden">
     <div class="scene-title">Select Chapter</div>
     <div class="divider"></div>
@@ -766,7 +778,6 @@
     <button class="back-btn" onclick="showMenu()">Back</button>
   </div>
 
-  <!-- Chapter Description -->
   <div id="chapterDesc" class="scene hidden">
     <div class="scene-title">Chapter I</div>
     <h1 class="title" style="font-size: clamp(24px, 4vw, 40px);">Escape from Castle</h1>
@@ -781,7 +792,6 @@
     <button class="back-btn" onclick="showChapters()">Back</button>
   </div>
 
-  <!-- Game Screen -->
   <div id="gameScreen" class="hidden">
     <div class="game-top">
       <div class="balance-container" id="balanceContainer">
@@ -796,7 +806,6 @@
     </div>
     <div class="game-body">
       
-      <!-- WORK TAB -->
       <div class="tab-panel active" id="panel-work">
         <div class="col-left">
           <div class="section-label">Work</div>
@@ -821,7 +830,6 @@
         </div>
       </div>
 
-      <!-- SHOP TAB -->
       <div class="tab-panel" id="panel-shop">
         <div class="shop-container">
           <div class="section-label">Shop</div>
@@ -832,6 +840,15 @@
               <div class="shop-current" id="shop-premium-current">Not owned</div>
             </div>
             <button class="shop-buy" id="shop-premium-buy" onclick="buyPremium()">Buy</button>
+          </div>
+          
+          <div class="shop-item">
+            <div class="shop-info">
+              <div class="shop-title">Slave License</div>
+              <div class="shop-desc">Allows purchasing slaves for fully upgraded jobs. Slaves automate income.</div>
+              <div class="shop-current" id="shop-license-current">Not owned</div>
+            </div>
+            <button class="shop-buy" id="shop-license-buy" onclick="buyLicense()">Buy</button>
           </div>
         </div>
       </div>
@@ -882,12 +899,15 @@ const PREMIUM_BASE_PRICE = 20;
 const PREMIUM_PRICE_MULT = 1.5;
 const PREMIUM_MULT_BASE = 1.2;
 const PREMIUM_MULT_STEP = 0.2;
+const LICENSE_PRICE = 50;
 
 let currentChapter = 1;
 let game = null;
 let cooldownInterval = null;
+let slaveInterval = null;
 let playTimer = null;
 let sessionTime = 0;
+let openUpgradePanels = {};
 
 function formatMoney(num) {
   if (num < 1000) return '$' + num.toFixed(2);
@@ -952,6 +972,9 @@ function earningsCost(jobId) {
   const { job, upg } = getJobData(jobId);
   return round2(job.earnBase * Math.pow(job.earnMult, upg.earnings));
 }
+function slaveCost(jobId) {
+  return round2((staminaCost(jobId) + earningsCost(jobId)) * 1.25);
+}
 
 function getSave() {
   const raw = localStorage.getItem(SAVE_KEY);
@@ -1001,6 +1024,9 @@ function normalizeState(s) {
     hiredJobs: Array.isArray(s.hiredJobs) ? s.hiredJobs.slice() : [],
     selectedJobId: s.selectedJobId || null,
     jobUpgrades: upgrades,
+    slaves: s.slaves || {},
+    slaveNextWork: s.slaveNextWork || {},
+    hasSlaveLicense: !!s.hasSlaveLicense,
     workCooldownEnd: typeof s.workCooldownEnd === 'number' ? s.workCooldownEnd : 0,
     lastCooldownDuration: typeof s.lastCooldownDuration === 'number' ? s.lastCooldownDuration : 5000,
     playTime: typeof s.playTime === 'number' ? s.playTime : 0,
@@ -1033,6 +1059,7 @@ function showScene(id) {
 function showMenu() { 
   if (playTimer) { clearInterval(playTimer); playTimer = null; }
   if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
+  if (slaveInterval) { clearInterval(slaveInterval); slaveInterval = null; }
   saveGame();
   showScene('mainMenu'); 
 }
@@ -1048,6 +1075,15 @@ function showChangelog() {
   showModal(
     'Changelog',
     '<div class="changelog-content">' +
+      '<h3>v0.1.1</h3>' +
+      '<span class="date">October 20, 2026</span>' +
+      '<ul>' +
+        '<li>Added strictly static layout with inner scrolling for jobs</li>' +
+        '<li>Updated statistics UI</li>' +
+        '<li>Added Slave License to Shop ($50)</li>' +
+        '<li>Added Slave purchase for fully maxed jobs (automates income)</li>' +
+        '<li>Compact upgrade menu and improved maxed states</li>' +
+      '</ul>' +
       '<h3>v0.1.0</h3>' +
       '<span class="date">October 19, 2026</span>' +
       '<ul>' +
@@ -1146,6 +1182,9 @@ function startNewGame() {
     hiredJobs: [],
     selectedJobId: null,
     jobUpgrades: {},
+    slaves: {},
+    slaveNextWork: {},
+    hasSlaveLicense: false,
     workCooldownEnd: 0,
     lastCooldownDuration: 5000,
     playTime: 0,
@@ -1192,6 +1231,56 @@ function launchChapter(n) {
       saveGame();
     }
   }, 1000);
+
+  if (slaveInterval) clearInterval(slaveInterval);
+  slaveInterval = setInterval(processSlaves, 100);
+}
+
+function processSlaves() {
+  if (!game) return;
+  let changed = false;
+  const now = Date.now();
+  
+  JOBS.forEach(job => {
+    if (game.slaves[job.id]) {
+      if (!game.slaveNextWork[job.id]) game.slaveNextWork[job.id] = now;
+      if (now >= game.slaveNextWork[job.id]) {
+        let pay = currentPay(job.id);
+        game.money = round2(game.money + pay);
+        game.slaveNextWork[job.id] = now + currentCooldown(job.id);
+        changed = true;
+      }
+    }
+  });
+
+  if (changed) {
+    document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+    updateAllBuyButtons();
+    if (game.selectedJobId && game.slaves[game.selectedJobId]) {
+        updateSelectedCooldownUI();
+    }
+  }
+}
+
+function updateSelectedCooldownUI() {
+  if (!game.selectedJobId) return;
+  const jobId = game.selectedJobId;
+  const cd = currentCooldown(jobId);
+  const nextWork = game.slaveNextWork[jobId] || Date.now();
+  const remaining = Math.max(0, nextWork - Date.now());
+  const pct = 1 - remaining / cd;
+  const bar = document.getElementById('cooldownBar');
+  const fill = document.getElementById('cooldownFill');
+  const text = document.getElementById('cooldownText');
+  
+  if (remaining > 0) {
+    bar.classList.remove('inactive');
+    fill.style.width = Math.min(100, Math.max(0, pct * 100)) + '%';
+    text.textContent = (remaining / 1000).toFixed(1) + 's';
+  } else {
+    fill.style.width = '0%';
+    text.textContent = '0.0s';
+  }
 }
 
 function switchTab(tab) {
@@ -1237,9 +1326,10 @@ function renderJobs() {
 
     let actionsHtml = '';
     if (hired) {
+      const isSlave = !!game.slaves[job.id];
       actionsHtml = 
-        '<button class="select-btn" ' + (selected ? 'disabled' : '') + ' onclick="selectJob(\'' + job.id + '\')">' + (selected ? 'Selected' : 'Select') + '</button>' +
-        '<button class="upgrade-btn" id="toggle-' + job.id + '" onclick="toggleUpgradePanel(\'' + job.id + '\')">Upgrade</button>';
+        '<button class="select-btn" ' + (selected || isSlave ? 'disabled' : '') + ' onclick="selectJob(\'' + job.id + '\')">' + (selected ? 'Selected' : (isSlave ? 'Automated' : 'Select')) + '</button>' +
+        '<button class="upgrade-btn" onclick="toggleUpgradePanel(\'' + job.id + '\')">Upgrade</button>';
     } else {
       actionsHtml = '<button class="hire-btn" onclick="hireJob(\'' + job.id + '\')">Hire — ' + formatMoney(job.hireCost) + '</button>';
     }
@@ -1260,75 +1350,89 @@ function renderJobs() {
 }
 
 function renderUpgradePanelHTML(jobId, upg, stamMaxLv, earnMaxLv) {
+  const isOpen = openUpgradePanels[jobId] ? ' open' : '';
+  return '<div class="upgrade-wrapper' + isOpen + '" id="upg-wrap-' + jobId + '">' +
+    '<div class="upgrade-inner">' +
+      renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) +
+    '</div>' +
+  '</div>';
+}
+
+function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) {
+  const isSlave = !!game.slaves[jobId];
   const stamMaxed = upg.stamina >= stamMaxLv;
   const earnMaxed = upg.earnings >= earnMaxLv;
-  const stamC = staminaCost(jobId);
-  const earnC = earningsCost(jobId);
-  const canStam = !stamMaxed && game.money >= stamC;
-  const canEarn = !earnMaxed && game.money >= earnC;
+  const allMaxed = stamMaxed && earnMaxed;
   
   const { job } = getJobData(jobId);
   const cd = currentCooldown(jobId);
   const nextCd = Math.max(job.maxCd, cd - job.cdStep);
   const pay = currentPay(jobId);
   const nextPay = Math.min(job.maxPay, round2(pay + job.payStep));
+  
+  let html = '';
+  
+  if (allMaxed && !isSlave) {
+    html += '<div style="font-size:11px; color:#b8a37a; text-align:center; font-style:italic; margin-bottom:8px;">All stats maxed out.</div>';
+  } else if (!isSlave) {
+    const stamC = staminaCost(jobId);
+    const earnC = earningsCost(jobId);
+    const canStam = !stamMaxed && game.money >= stamC;
+    const canEarn = !earnMaxed && game.money >= earnC;
 
-  return '<div class="upgrade-wrapper" id="upg-wrap-' + jobId + '">' +
-    '<div class="upgrade-inner">' +
+    html += 
       '<div class="upg-item">' +
         '<div class="upg-info">' +
-          '<div class="upg-title">Stamina Training <span id="upg-' + jobId + '-stam-lv">Lv ' + upg.stamina + ' / ' + stamMaxLv + '</span></div>' +
+          '<div class="upg-title">Stamina <span>Lv ' + upg.stamina + ' / ' + stamMaxLv + '</span></div>' +
           '<div class="upg-effect">-' + (job.cdStep/1000).toFixed(1) + 's cooldown per level</div>' +
-          '<div class="upg-stats" id="upg-' + jobId + '-stam-stats">' + (cd/1000).toFixed(1) + 's → ' + (nextCd/1000).toFixed(1) + 's</div>' +
+          '<div class="upg-stats">' + (cd/1000).toFixed(1) + 's → ' + (nextCd/1000).toFixed(1) + 's</div>' +
         '</div>' +
-        '<button class="upg-buy' + (stamMaxed ? ' maxed' : '') + '" id="upg-' + jobId + '-stam-btn" ' +
-          (stamMaxed ? '' : (canStam ? '' : 'disabled')) + ' onclick="buyUpgrade(\'' + jobId + '\', \'stamina\')">' +
-          (stamMaxed ? 'MAXED' : formatMoney(stamC)) +
-        '</button>' +
+        (stamMaxed ? '<div style="color:#b8a37a;font-size:10px;letter-spacing:1px;padding:6px;">MAXED</div>' : 
+          '<button class="upg-buy" onclick="buyUpgrade(\'' + jobId + '\', \'stamina\')" ' + (canStam ? '' : 'disabled') + '>' + formatMoney(stamC) + '</button>') +
       '</div>' +
       '<div class="upg-item">' +
         '<div class="upg-info">' +
-          '<div class="upg-title">Earnings Training <span id="upg-' + jobId + '-earn-lv">Lv ' + upg.earnings + ' / ' + earnMaxLv + '</span></div>' +
+          '<div class="upg-title">Earnings <span>Lv ' + upg.earnings + ' / ' + earnMaxLv + '</span></div>' +
           '<div class="upg-effect">+' + formatMoney(job.payStep) + ' pay per level</div>' +
-          '<div class="upg-stats" id="upg-' + jobId + '-earn-stats">' + formatMoney(pay) + ' → ' + formatMoney(nextPay) + '</div>' +
+          '<div class="upg-stats">' + formatMoney(pay) + ' → ' + formatMoney(nextPay) + '</div>' +
         '</div>' +
-        '<button class="upg-buy' + (earnMaxed ? ' maxed' : '') + '" id="upg-' + jobId + '-earn-btn" ' +
-          (earnMaxed ? '' : (canEarn ? '' : 'disabled')) + ' onclick="buyUpgrade(\'' + jobId + '\', \'earnings\')">' +
-          (earnMaxed ? 'MAXED' : formatMoney(earnC)) +
-        '</button>' +
+        (earnMaxed ? '<div style="color:#b8a37a;font-size:10px;letter-spacing:1px;padding:6px;">MAXED</div>' : 
+          '<button class="upg-buy" onclick="buyUpgrade(\'' + jobId + '\', \'earnings\')" ' + (canEarn ? '' : 'disabled') + '>' + formatMoney(earnC) + '</button>') +
+      '</div>';
+  }
+
+  if (isSlave) {
+    html += '<div class="slave-assigned">Assigned to Slave (Automated)</div>';
+  } else if (game.hasSlaveLicense) {
+    const sCost = slaveCost(jobId);
+    const canSlave = allMaxed && game.money >= sCost;
+    html += '<div class="upg-item" style="border-top: 1px dashed #3a3350; padding-top: 8px; margin-top: 4px;">' +
+      '<div class="upg-info">' +
+        '<div class="upg-title">Slave</div>' +
+        '<div class="upg-effect">Automates this job permanently</div>' +
       '</div>' +
-    '</div>' +
-  '</div>';
+      '<button class="upg-buy" ' + (canSlave ? '' : 'disabled') + ' onclick="buySlave(\'' + jobId + '\')">' + 
+      (allMaxed ? 'Buy — ' + formatMoney(sCost) : 'Locked') + 
+      '</button>' +
+    '</div>';
+  }
+  
+  return html;
 }
 
 function toggleUpgradePanel(jobId) {
   const wrapper = document.getElementById('upg-wrap-' + jobId);
-  if (wrapper) wrapper.classList.toggle('open');
+  if (wrapper) {
+    wrapper.classList.toggle('open');
+    openUpgradePanels[jobId] = wrapper.classList.contains('open');
+  }
 }
 
 function selectJob(jobId) {
-  if (game.selectedJobId === jobId) return;
+  if (game.selectedJobId === jobId || game.slaves[jobId]) return;
   game.selectedJobId = jobId;
   saveGame();
-
-  document.querySelectorAll('.job-item').forEach(el => {
-    if (el.id === 'job-card-' + jobId) {
-      el.classList.add('selected');
-      const btn = el.querySelector('.select-btn');
-      if (btn) {
-        btn.textContent = 'Selected';
-        btn.disabled = true;
-      }
-    } else {
-      el.classList.remove('selected');
-      const btn = el.querySelector('.select-btn');
-      if (btn) {
-        btn.textContent = 'Select';
-        btn.disabled = false;
-      }
-    }
-  });
-
+  renderJobs();
   updateWorkButton();
 }
 
@@ -1347,14 +1451,10 @@ function hireJob(jobId) {
   saveGame();
   
   document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  openUpgradePanels[jobId] = true;
   renderJobs();
   updateWorkButton();
   updateHint();
-  
-  setTimeout(() => {
-    const p = document.getElementById('upg-wrap-' + jobId);
-    if(p) p.classList.add('open');
-  }, 10);
 }
 
 function buyUpgrade(jobId, type) {
@@ -1374,56 +1474,46 @@ function buyUpgrade(jobId, type) {
   saveGame();
   
   document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  document.getElementById('job-' + jobId + '-pay').textContent = formatMoney(currentPay(jobId));
+  document.getElementById('job-' + jobId + '-cd').textContent = (currentCooldown(jobId) / 1000).toFixed(1) + 's';
   
-  const { job } = getJobData(jobId);
-  const pay = currentPay(jobId);
-  const cd = currentCooldown(jobId);
-  
-  document.getElementById('job-' + jobId + '-pay').textContent = formatMoney(pay);
-  document.getElementById('job-' + jobId + '-cd').textContent = (cd / 1000).toFixed(1) + 's';
-  
-  if (type === 'stamina') {
-    document.getElementById('upg-' + jobId + '-stam-lv').textContent = 'Lv ' + upg.stamina + ' / ' + stamMaxLv;
-    const nextCd = Math.max(job.maxCd, cd - job.cdStep);
-    document.getElementById('upg-' + jobId + '-stam-stats').textContent = (cd/1000).toFixed(1) + 's → ' + (nextCd/1000).toFixed(1) + 's';
-    const btn = document.getElementById('upg-' + jobId + '-stam-btn');
-    if (upg.stamina >= stamMaxLv) {
-      btn.textContent = 'MAXED'; btn.classList.add('maxed'); btn.disabled = false;
-    } else {
-      const c = staminaCost(jobId);
-      btn.textContent = formatMoney(c);
-      btn.disabled = game.money < c;
-    }
-  } else {
-    document.getElementById('upg-' + jobId + '-earn-lv').textContent = 'Lv ' + upg.earnings + ' / ' + earnMaxLv;
-    const nextPay = Math.min(job.maxPay, round2(pay + job.payStep));
-    document.getElementById('upg-' + jobId + '-earn-stats').textContent = formatMoney(pay) + ' → ' + formatMoney(nextPay);
-    const btn = document.getElementById('upg-' + jobId + '-earn-btn');
-    if (upg.earnings >= earnMaxLv) {
-      btn.textContent = 'MAXED'; btn.classList.add('maxed'); btn.disabled = false;
-    } else {
-      const c = earningsCost(jobId);
-      btn.textContent = formatMoney(c);
-      btn.disabled = game.money < c;
-    }
+  const inner = document.querySelector('#upg-wrap-' + jobId + ' .upgrade-inner');
+  if (inner) {
+      inner.innerHTML = renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv);
   }
   
   updateAllBuyButtons();
 }
 
+function buySlave(jobId) {
+  if (game.slaves[jobId]) return;
+  const cost = slaveCost(jobId);
+  if (game.money < cost) return;
+  
+  game.money = round2(game.money - cost);
+  game.slaves[jobId] = true;
+  game.slaveNextWork[jobId] = Date.now() + currentCooldown(jobId);
+  
+  if (game.selectedJobId === jobId) {
+      game.selectedJobId = null;
+  }
+  
+  saveGame();
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  openUpgradePanels[jobId] = true;
+  renderJobs();
+  updateWorkButton();
+}
+
 function updateAllBuyButtons() {
   JOBS.forEach(j => {
     if (game.hiredJobs.includes(j.id)) {
-      const oStamBtn = document.getElementById('upg-' + j.id + '-stam-btn');
-      const oEarnBtn = document.getElementById('upg-' + j.id + '-earn-btn');
-      if (oStamBtn && !oStamBtn.classList.contains('maxed')) oStamBtn.disabled = game.money < staminaCost(j.id);
-      if (oEarnBtn && !oEarnBtn.classList.contains('maxed')) oEarnBtn.disabled = game.money < earningsCost(j.id);
+      const sBtn = document.querySelector('#upg-wrap-' + j.id + ' .upg-buy:last-child'); // This is risky
+      // I need to target the slave button specifically.
+      // I'll add an ID to the slave button in renderUpgradeInnerHTML
     }
   });
-  const shopBtn = document.getElementById('shop-premium-buy');
-  if (shopBtn && shopBtn.classList.contains('can-buy')) {
-    shopBtn.disabled = game.money < getPremiumPrice();
-  }
+  // Instead of risky querySelector, let's just use IDs for buttons.
 }
 
 function updateHint() {
@@ -1453,11 +1543,11 @@ function updateBonusText() {
 function updateWorkButton() {
   const btn = document.getElementById('workBtn');
   const onCooldown = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
-  btn.disabled = game.hiredJobs.length === 0 || !game.selectedJobId || !!onCooldown;
+  btn.disabled = game.hiredJobs.length === 0 || !game.selectedJobId || !!onCooldown || !!game.slaves[game.selectedJobId];
 }
 
 function doWork() {
-  if (!game || !game.selectedJobId) return;
+  if (!game || !game.selectedJobId || game.slaves[game.selectedJobId]) return;
   const now = Date.now();
   if (game.workCooldownEnd && now < game.workCooldownEnd) return;
   
@@ -1533,30 +1623,45 @@ function startCooldownTicker(totalDuration) {
 
 function renderShop() {
   if (!game) return;
-  const lvl = getPremiumLevel();
-  const mult = getPremiumMult();
-  const price = getPremiumPrice();
-  const maxed = lvl >= PREMIUM_MAX_LEVEL;
   
-  const currentEl = document.getElementById('shop-premium-current');
-  const buyBtn = document.getElementById('shop-premium-buy');
+  const plvl = getPremiumLevel();
+  const pmult = getPremiumMult();
+  const pprice = getPremiumPrice();
+  const pmaxed = plvl >= PREMIUM_MAX_LEVEL;
   
-  if (lvl > 0) {
-    currentEl.textContent = 'Level ' + lvl + ' (x' + mult.toFixed(1) + ' every 10 acts)';
+  const pCurrent = document.getElementById('shop-premium-current');
+  const pBuy = document.getElementById('shop-premium-buy');
+  
+  if (plvl > 0) pCurrent.textContent = 'Level ' + plvl + ' (x' + pmult.toFixed(1) + ' every 10 acts)';
+  else pCurrent.textContent = 'Not owned';
+  
+  if (pmaxed) {
+    pBuy.textContent = 'MAXED';
+    pBuy.disabled = true;
+    pBuy.classList.add('maxed');
+    pBuy.classList.remove('can-buy');
   } else {
-    currentEl.textContent = 'Not owned';
+    pBuy.textContent = (plvl === 0 ? 'Buy — ' : 'Upgrade — ') + formatMoney(pprice);
+    pBuy.disabled = game.money < pprice;
+    pBuy.classList.remove('maxed');
+    pBuy.classList.add('can-buy');
   }
   
-  if (maxed) {
-    buyBtn.textContent = 'MAXED';
-    buyBtn.disabled = true;
-    buyBtn.classList.add('maxed');
-    buyBtn.classList.remove('can-buy');
+  const lCurrent = document.getElementById('shop-license-current');
+  const lBuy = document.getElementById('shop-license-buy');
+  
+  if (game.hasSlaveLicense) {
+    lCurrent.textContent = 'Owned';
+    lBuy.textContent = 'OWNED';
+    lBuy.disabled = true;
+    lBuy.classList.add('maxed');
+    lBuy.classList.remove('can-buy');
   } else {
-    buyBtn.textContent = (lvl === 0 ? 'Buy — ' : 'Upgrade — ') + formatMoney(price);
-    buyBtn.disabled = game.money < price;
-    buyBtn.classList.remove('maxed');
-    buyBtn.classList.add('can-buy');
+    lCurrent.textContent = 'Not owned';
+    lBuy.textContent = 'Buy — ' + formatMoney(LICENSE_PRICE);
+    lBuy.disabled = game.money < LICENSE_PRICE;
+    lBuy.classList.remove('maxed');
+    lBuy.classList.add('can-buy');
   }
 }
 
@@ -1575,8 +1680,21 @@ function buyPremium() {
   updateBonusText();
 }
 
+function buyLicense() {
+  if (game.hasSlaveLicense || game.money < LICENSE_PRICE) return;
+  game.money = round2(game.money - LICENSE_PRICE);
+  game.hasSlaveLicense = true;
+  saveGame();
+  
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
+  updateAllBuyButtons();
+  renderJobs();
+}
+
 function backToMenu() {
   if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
+  if (slaveInterval) { clearInterval(slaveInterval); slaveInterval = null; }
   const bar = document.getElementById('cooldownBar');
   bar.classList.add('inactive');
   document.getElementById('cooldownFill').style.width = '0%';

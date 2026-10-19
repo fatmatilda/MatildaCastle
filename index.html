@@ -252,6 +252,10 @@
     font-size: 14px;
     top: 10px;
   }
+  .floating-money.penalty-money {
+    color: #b85a7a;
+    font-weight: bold;
+  }
   .floating-money .mult-text {
     font-size: 11px;
     color: #7a5a9a;
@@ -402,15 +406,16 @@
     width: 100%;
   }
   .plate-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
     gap: 8px;
-    max-width: 320px;
-    padding: 10px;
+    justify-items: center;
+    padding: 12px;
     background: rgba(10, 5, 20, 0.5);
     border: 1px solid #3a3350;
     border-radius: 6px;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
   }
   .plate-btn {
     width: 32px;
@@ -500,6 +505,13 @@
     margin-top: 10px;
     letter-spacing: 0.5px;
     text-align: center;
+  }
+  .clock-display {
+    font-size: 14px;
+    color: #b8a37a;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
   }
 
   .job-list { 
@@ -629,6 +641,109 @@
     text-align: center; padding: 6px;
   }
 
+  /* Room Styles */
+  .room-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  .window-frame {
+    width: 320px;
+    height: 220px;
+    border: 10px solid #3a2a50;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-bottom: 20px;
+    background: #000;
+  }
+  .window-sky {
+    width: 100%;
+    height: 100%;
+    transition: background 2s ease;
+    position: relative;
+  }
+  .curtain {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background: #4a1a2a;
+    border-right: 2px solid #2a0a1a;
+    border-left: 2px solid #2a0a1a;
+    transition: transform 0.8s ease-in-out;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    z-index: 2;
+  }
+  .curtain.left { left: 0; transform-origin: left; }
+  .curtain.right { right: 0; transform-origin: right; }
+  .curtain.closed.left { transform: scaleX(1); }
+  .curtain.closed.right { transform: scaleX(1); }
+  .curtain.left:not(.closed) { transform: scaleX(0); }
+  .curtain.right:not(.closed) { transform: scaleX(0); }
+
+  #celestialBody {
+    position: absolute;
+    font-size: 56px;
+    transition: all 1s linear;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+
+  .room-btn {
+    font-size: 12px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    background: rgba(30, 20, 50, 0.6);
+    border: 1px solid #7a5a9a;
+    color: #d4b8ff;
+    margin-bottom: 10px;
+    width: 250px;
+  }
+  .room-btn.warn {
+    border-color: #b85a7a;
+    color: #f3c8d8;
+  }
+  .room-btn.warn:hover {
+    background: rgba(184, 90, 122, 0.3);
+    border-color: #f3c8d8;
+  }
+  .room-btn:hover:not(:disabled) {
+    background: #4a2a6a;
+    color: #f3e6c8;
+    border-color: #b8a37a;
+    letter-spacing: 2px;
+    box-shadow: none;
+    transform: none;
+  }
+  
+  .bed-area {
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .bed-btn {
+    width: 250px;
+    padding: 15px;
+    font-size: 14px;
+    background: linear-gradient(180deg, #2a2038, #1a1228);
+    border: 2px solid #5a4a6a;
+    color: #b8a3d0;
+    white-space: nowrap;
+  }
+  .bed-btn:hover:not(:disabled) {
+    border-color: #b8a37a;
+    color: #f3e6c8;
+    box-shadow: 0 0 15px rgba(180, 140, 255, 0.2);
+    letter-spacing: 2px;
+  }
+
   .shop-container {
     width: 100%;
     max-width: 600px;
@@ -653,6 +768,16 @@
   .shop-buy {
     font-size: 12px; letter-spacing: 2px; padding: 12px 24px;
     background: rgba(180, 163, 122, 0.15); color: #f3e6c8; border: 1px solid #b8a37a;
+  }
+
+  #sleepOverlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+    z-index: 99;
   }
 
   .modal-overlay {
@@ -680,6 +805,12 @@
     box-shadow: 0 0 60px rgba(120, 60, 180, 0.4);
     text-align: center;
     border-radius: 4px;
+  }
+  .modal.small-modal {
+    height: auto;
+    max-height: 90vh;
+    padding: 24px;
+    max-width: 380px;
   }
   .modal h2 {
     font-size: 16px;
@@ -724,11 +855,18 @@
     padding-right: 12px; 
     margin-bottom: 10px;
   }
-  .changelog-content h3 { font-size: 14px; color: #f3e6c8; margin-bottom: 4px; font-weight: normal; border-bottom: 1px solid #3a3350; padding-bottom: 4px; margin-top: 16px; }
-  .changelog-content h3:first-child { margin-top: 0; }
-  .changelog-content ul { padding-left: 18px; margin-bottom: 12px; }
-  .changelog-content li { margin-bottom: 4px; }
-  .changelog-content .date { font-size: 11px; color: #8a7fa5; font-style: italic; margin-bottom: 8px; display: block; }
+  
+  .clog-item { border-bottom: 1px solid #3a3350; padding: 10px 0; }
+  .clog-item:last-child { border-bottom: none; }
+  .clog-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s; }
+  .clog-header:hover { color: #f3e6c8; }
+  .clog-header h3 { font-size: 14px; color: #f3e6c8; margin: 0; padding: 0; font-weight: normal; }
+  .clog-header .date { font-size: 11px; color: #8a7fa5; font-style: italic; display: block; margin-top: 2px; }
+  .clog-header .arrow { font-size: 10px; color: #8a7fa5; transition: transform 0.3s; }
+  .clog-item.open .clog-header .arrow { transform: rotate(90deg); color: #f3e6c8; }
+  .clog-body { padding-left: 15px; margin-top: 10px; font-size: 12px; color: #b8a3d0; }
+  .clog-body ul { padding-left: 15px; margin: 0; }
+  .clog-body li { margin-bottom: 4px; }
   
   .changelog-content::-webkit-scrollbar { width: 6px; }
   .changelog-content::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; }
@@ -833,7 +971,7 @@
       <button class="menu-btn" onclick="showStats()">Statistics</button>
     </div>
     <div class="bottom-right-corner">
-      <div class="version-text">v0.1.2</div>
+      <div class="version-text">v0.1.3</div>
       <button class="changelog-btn" onclick="showChangelog()">Changelog</button>
     </div>
   </div>
@@ -881,14 +1019,37 @@
       <button class="menu-mini" onclick="backToMenu()">Menu</button>
     </div>
     <div class="tabs">
+      <button class="tab-btn" data-tab="room" onclick="switchTab('room')">Your Room</button>
       <button class="tab-btn active" data-tab="work" onclick="switchTab('work')">Work</button>
       <button class="tab-btn" data-tab="shop" onclick="switchTab('shop')">Shop</button>
     </div>
     <div class="game-body">
       
+      <!-- ROOM TAB -->
+      <div class="tab-panel" id="panel-room">
+        <div class="room-container">
+          <div class="section-label">Your Room</div>
+          <div class="window-frame">
+            <div class="window-sky" id="windowSky">
+              <div id="celestialBody"></div>
+            </div>
+            <div class="curtain left closed" id="curtainLeft"></div>
+            <div class="curtain right closed" id="curtainRight"></div>
+          </div>
+          <button class="room-btn" onclick="checkWindow()">Open Curtains</button>
+          <button class="room-btn warn" onclick="showRules()">⚠ Castle Rules</button>
+          <div class="bed-area">
+            <button class="bed-btn" onclick="sleep()">🛏 Sleep for 8 hours</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- WORK TAB -->
       <div class="tab-panel active" id="panel-work">
         <div class="col-left">
           <div class="section-label">Work</div>
+          
+          <div id="workClock" class="clock-display hidden">Time: 08:00</div>
           
           <button id="workBtn" class="work-btn" disabled onclick="doWork()">Work</button>
           
@@ -915,6 +1076,7 @@
         </div>
       </div>
 
+      <!-- SHOP TAB -->
       <div class="tab-panel" id="panel-shop">
         <div class="shop-container">
           <div class="section-label">Shop</div>
@@ -935,6 +1097,15 @@
             </div>
             <button class="shop-buy" id="shop-license-buy" onclick="buyLicense()">Buy</button>
           </div>
+
+          <div class="shop-item">
+            <div class="shop-info">
+              <div class="shop-title">Pocket Clock</div>
+              <div class="shop-desc">A small clock to keep track of time. Displays current time in the Work tab.</div>
+              <div class="shop-current" id="shop-clock-current">Not owned</div>
+            </div>
+            <button class="shop-buy" id="shop-clock-buy" onclick="buyClock()">Buy</button>
+          </div>
         </div>
       </div>
 
@@ -942,11 +1113,13 @@
   </div>
 </div>
 
+<div id="sleepOverlay"></div>
 <div id="modalRoot"></div>
 
 <script>
 const SAVE_KEY = 'matilda_castle_save';
 const GLOBAL_STATS_KEY = 'matilda_global_stats';
+const CURRENT_VERSION = 'v0.1.3';
 
 const JOBS = [
   {
@@ -1003,6 +1176,7 @@ const PREMIUM_PRICE_MULT = 1.5;
 const PREMIUM_MULT_BASE = 1.2;
 const PREMIUM_MULT_STEP = 0.2;
 const LICENSE_PRICE = 50;
+const CLOCK_PRICE = 1500;
 
 let currentChapter = 1;
 let game = null;
@@ -1011,6 +1185,7 @@ let slaveInterval = null;
 let playTimer = null;
 let sessionTime = 0;
 let openUpgradePanels = {};
+let updateShown = false;
 
 function formatMoney(num) {
   if (num < 1000) return '$' + num.toFixed(2);
@@ -1020,7 +1195,17 @@ function formatMoney(num) {
     num /= 1000;
     i++;
   }
-  return '$' + num.toFixed(num >= 100 ? 0 : (num >= 10 ? 1 : 2)) + suffixes[i];
+  
+  let decimals = 2;
+  if (num >= 100) decimals = 0;
+  else if (num >= 10) decimals = 1;
+  
+  let formatted = parseFloat(num.toFixed(decimals));
+  if (formatted >= 1000 && i < suffixes.length - 1) {
+     formatted /= 1000;
+     i++;
+  }
+  return '$' + formatted + suffixes[i];
 }
 
 function formatTime(seconds) {
@@ -1037,6 +1222,12 @@ function formatTime(seconds) {
     return m + 'm ' + s + 's';
   }
   return seconds + 's';
+}
+
+function formatGameTime(mins) {
+  const h = Math.floor(mins / 60) % 24;
+  const m = Math.floor(mins % 60);
+  return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
 }
 
 function round2(n) { return Math.round(n * 100) / 100; }
@@ -1149,6 +1340,10 @@ function normalizeState(s) {
     slaves: s.slaves || {},
     slaveNextWork: s.slaveNextWork || {},
     hasSlaveLicense: !!s.hasSlaveLicense,
+    hasClock: !!s.hasClock,
+    timeMinutes: typeof s.timeMinutes === 'number' ? s.timeMinutes : 480,
+    lastCurtainTime: typeof s.lastCurtainTime === 'number' ? s.lastCurtainTime : -120,
+    slaveNightEarnings: typeof s.slaveNightEarnings === 'number' ? s.slaveNightEarnings : 0,
     workCooldownEnd: typeof s.workCooldownEnd === 'number' ? s.workCooldownEnd : 0,
     lastCooldownDuration: typeof s.lastCooldownDuration === 'number' ? s.lastCooldownDuration : 5000,
     playTime: typeof s.playTime === 'number' ? s.playTime : 0,
@@ -1186,6 +1381,7 @@ function showMenu() {
   if (slaveInterval) { clearInterval(slaveInterval); slaveInterval = null; }
   saveGame();
   showScene('mainMenu'); 
+  checkVersionPopup();
 }
 function showChapters() { showScene('chapterSelect'); }
 
@@ -1195,36 +1391,91 @@ function selectChapter(n) {
   showScene('chapterDesc');
 }
 
+function toggleChangelog(el) {
+  const parent = el.parentElement;
+  const body = parent.querySelector('.clog-body');
+  parent.classList.toggle('open');
+  if (body) body.classList.toggle('hidden');
+}
+
 function showChangelog() {
   showModal(
     'Changelog',
     '<div class="changelog-content">' +
-      '<h3>v0.1.2</h3>' +
-      '<span class="date">October 19, 2026</span>' +
-      '<ul>' +
-        '<li>Added new job: Plate Sorting</li>' +
-      '</ul>' +
-      '<h3>v0.1.1</h3>' +
-      '<span class="date">October 19, 2026</span>' +
-      '<ul>' +
-        '<li>Added Shop with Premium multiplier</li>' +
-        '<li>Introduced Slave System (License + automated income)</li>' +
-        '<li>Added global statistics and dynamic number formatting</li>' +
-        '<li>Static layout with inner scrolling for jobs</li>' +
-      '</ul>' +
-      '<h3>v0.1.0</h3>' +
-      '<span class="date">October 19, 2026</span>' +
-      '<ul>' +
-        '<li>Initial release</li>' +
-        '<li>Added Chapter I: Escape from Castle</li>' +
-        '<li>Added core jobs (Carry Boxes, Wash Dishes)</li>' +
-      '</ul>' +
+      '<div class="clog-item">' +
+        '<div class="clog-header" onclick="toggleChangelog(this)">' +
+          '<div><h3>v0.1.3</h3><span class="date">October 19, 2026</span></div>' +
+          '<span class="arrow">▶</span>' +
+        '</div>' +
+        '<div class="clog-body hidden">' +
+          '<ul>' +
+            '<li>Added "Your Room" tab with day/night cycle</li>' +
+            '<li>Added Sleeping (8h, costs 5% tax) and Window checking</li>' +
+            '<li>Night work penalty increased to 12.5x</li>' +
+            '<li>Slaves earn at night, but lose their earnings if caught</li>' +
+            '<li>Added 30s cooldown upon being caught</li>' +
+            '<li>Added Clock to Shop (track time)</li>' +
+            '<li>Red floating text for money deductions</li>' +
+            '<li>Collapsible changelog details</li>' +
+          '</ul>' +
+        '</div>' +
+      '</div>' +
+      '<div class="clog-item">' +
+        '<div class="clog-header" onclick="toggleChangelog(this)">' +
+          '<div><h3>v0.1.2</h3><span class="date">October 19, 2026</span></div>' +
+          '<span class="arrow">▶</span>' +
+        '</div>' +
+        '<div class="clog-body hidden">' +
+          '<ul><li>Added new job: Plate Sorting</li></ul>' +
+        '</div>' +
+      '</div>' +
+      '<div class="clog-item">' +
+        '<div class="clog-header" onclick="toggleChangelog(this)">' +
+          '<div><h3>v0.1.1</h3><span class="date">October 19, 2026</span></div>' +
+          '<span class="arrow">▶</span>' +
+        '</div>' +
+        '<div class="clog-body hidden">' +
+          '<ul>' +
+            '<li>Added Shop with Premium multiplier</li>' +
+            '<li>Introduced Slave System</li>' +
+          '</ul>' +
+        '</div>' +
+      '</div>' +
+      '<div class="clog-item">' +
+        '<div class="clog-header" onclick="toggleChangelog(this)">' +
+          '<div><h3>v0.1.0</h3><span class="date">October 19, 2026</span></div>' +
+          '<span class="arrow">▶</span>' +
+        '</div>' +
+        '<div class="clog-body hidden">' +
+          '<ul><li>Initial release</li></ul>' +
+        '</div>' +
+      '</div>' +
     '</div>',
     'Close',
     null,
     closeModal,
     closeModal
   );
+}
+
+function checkVersionPopup() {
+  if (updateShown) return;
+  if (localStorage.getItem('seen_' + CURRENT_VERSION) !== 'true') {
+    updateShown = true;
+    setTimeout(() => {
+      showModal(
+        'Update ' + CURRENT_VERSION,
+        '<div style="text-align:left;line-height:1.6;font-size:14px;">Welcome to the new update! Here is what is new:<br><br>• <strong>Your Room</strong> tab with day/night cycle.<br>• <strong>Sleeping</strong> (costs 5% tax) and Window checking.<br>• <strong>Night Penalty</strong> increased to 12.5x.<br>• Slaves earn at night, but lose earnings if caught.<br>• Added a <strong>30s cooldown</strong> when caught.<br>• Added a Clock in the Shop.</div>',
+        'Okay',
+        null,
+        () => {
+          localStorage.setItem('seen_' + CURRENT_VERSION, 'true');
+          closeModal();
+        },
+        closeModal
+      );
+    }, 800);
+  }
 }
 
 function showStats() {
@@ -1274,13 +1525,13 @@ function requestNewGame() {
   );
 }
 
-function showModal(title, text, confirmLabel, cancelLabel, onConfirm, onCancel) {
+function showModal(title, text, confirmLabel, cancelLabel, onConfirm, onCancel, customClass = '') {
   const root = document.getElementById('modalRoot');
   const cancelHtml = cancelLabel ? '<button id="modalCancel">' + cancelLabel + '</button>' : '';
-  const isSpecial = title === 'Changelog' || title === 'Statistics';
+  const isSpecial = title === 'Changelog' || title === 'Statistics' || title.startsWith('Update') || title === 'Outside' || title === 'Slept';
   root.innerHTML =
     '<div class="modal-overlay" id="modalOverlay">' +
-      '<div class="modal">' +
+      '<div class="modal ' + customClass + '">' +
         '<h2>' + title + '</h2>' +
         (isSpecial ? text : '<p>' + text + '</p>') +
         '<div class="modal-actions">' +
@@ -1311,6 +1562,10 @@ function startNewGame() {
     slaves: {},
     slaveNextWork: {},
     hasSlaveLicense: false,
+    hasClock: false,
+    timeMinutes: 480,
+    lastCurtainTime: -120,
+    slaveNightEarnings: 0,
     workCooldownEnd: 0,
     lastCooldownDuration: 5000,
     playTime: 0,
@@ -1341,6 +1596,8 @@ function launchChapter(n) {
   document.getElementById('gameScreen').classList.remove('hidden');
   switchTab('work');
   renderGame();
+  updateSkyUI();
+  updateClockUI();
   
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) {
     startCooldownTicker(game.lastCooldownDuration);
@@ -1350,6 +1607,18 @@ function launchChapter(n) {
   sessionTime = 0;
   playTimer = setInterval(() => {
     sessionTime++;
+    
+    // Time progression: 1 real second = 2 in-game minutes
+    game.timeMinutes = (game.timeMinutes + 2) % 1440;
+    
+    // Reset slave night earnings at 06:00 (360 mins)
+    if (game.timeMinutes === 360) {
+      game.slaveNightEarnings = 0;
+    }
+    
+    updateSkyUI();
+    updateClockUI();
+    
     if (sessionTime % 10 === 0) {
       game.playTime = (game.playTime || 0) + 10;
       const gStats = getGlobalStats();
@@ -1364,10 +1633,140 @@ function launchChapter(n) {
   slaveInterval = setInterval(processSlaves, 100);
 }
 
+function updateSkyUI() {
+  const el = document.getElementById('windowSky');
+  const body = document.getElementById('celestialBody');
+  if (!el || !game) return;
+  const h = game.timeMinutes / 60;
+  
+  let c1, c2;
+  let isSun = true;
+
+  if (h >= 6 && h < 12) { // Dawn
+      c1 = '#2c1e4a'; c2 = '#f4a261';
+  } else if (h >= 12 && h < 18) { // Day
+      c1 = '#4a90e2'; c2 = '#a1c4fd';
+  } else if (h >= 18 && h < 24) { // Sunset
+      c1 = '#e76f51'; c2 = '#f4a261';
+  } else { // Night (0 to 6)
+      c1 = '#0b0b0f'; c2 = '#1a1228';
+      isSun = false;
+  }
+  
+  el.style.background = `linear-gradient(180deg, ${c1}, ${c2})`;
+
+  if (body) {
+    body.textContent = isSun ? '☀️' : '🌙';
+    let pct = 0;
+    let angle = 0;
+    if (h >= 6 && h < 18) {
+        pct = (h - 6) / 12;
+        angle = pct * Math.PI;
+        body.style.left = (pct * 100) + '%';
+        body.style.top = (100 - Math.sin(angle) * 80) + '%';
+    } else {
+        let mh = h >= 18 ? h - 18 : h + 6;
+        pct = mh / 12;
+        angle = pct * Math.PI;
+        body.style.left = (pct * 100) + '%';
+        body.style.top = (100 - Math.sin(angle) * 80) + '%';
+    }
+  }
+}
+
+function updateClockUI() {
+  const el = document.getElementById('workClock');
+  if (!el || !game) return;
+  
+  if (game.hasClock) {
+    el.classList.remove('hidden');
+    el.textContent = 'Time: ' + formatGameTime(game.timeMinutes);
+  } else {
+    el.classList.add('hidden');
+  }
+}
+
+function checkWindow() {
+  if (!game) return;
+  let diff = game.timeMinutes - game.lastCurtainTime;
+  if (diff < 0) diff += 1440;
+  
+  if (diff < 120) {
+    showModal('Try Later', 'You cannot open the curtains yet. Try again later. You can only look out the window once every 2 in-game hours.', 'Close', null, closeModal, closeModal, 'small-modal');
+    return;
+  }
+  game.lastCurtainTime = game.timeMinutes;
+  saveGame();
+  
+  const cL = document.getElementById('curtainLeft');
+  const cR = document.getElementById('curtainRight');
+  if (cL && cR) {
+    cL.classList.remove('closed');
+    cR.classList.remove('closed');
+    setTimeout(() => {
+      cL.classList.add('closed');
+      cR.classList.add('closed');
+    }, 2000);
+  }
+}
+
+function showRules() {
+  showModal('Castle Rules', '<p>Working during the night (00:00 - 06:00) is strictly forbidden. If Matilda catches you, she will confiscate a sum equal to 12.5x your current job\'s pay, plus any earnings your slaves made during the night.<br><br>Sleeping (8 hours) costs a 5% tax on your current balance.</p>', 'Understood', null, closeModal, closeModal, 'small-modal');
+}
+
+function sleep() {
+  if (!game) return;
+  
+  const cL = document.getElementById('curtainLeft');
+  const cR = document.getElementById('curtainRight');
+  const overlay = document.getElementById('sleepOverlay');
+  
+  const proceed = () => {
+    overlay.style.opacity = '1';
+    overlay.style.pointerEvents = 'auto';
+    
+    setTimeout(() => {
+      let cost = round2(game.money * 0.05);
+      if (cost > 0) {
+        game.money = round2(game.money - cost);
+        showFloatingPenalty(cost);
+      }
+      
+      game.timeMinutes = (game.timeMinutes + 480) % 1440;
+      game.slaveNightEarnings = 0;
+      updateSkyUI();
+      updateClockUI();
+      saveGame();
+      
+      const endSleep = () => {
+        closeModal();
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+      };
+      
+      const costText = cost > 0 ? '<div style="font-size: 12px; color: #b8a37a;">Tax paid: ' + formatMoney(cost) + ' (5%)</div>' : '';
+      
+      showModal('Slept', 
+        '<div style="font-size: 16px; color: #e8e3d8; margin-bottom: 8px;">You slept for 8 hours.</div>' + costText, 
+        'Close', null, endSleep, endSleep, 'small-modal');
+      document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+    }, 1000);
+  };
+
+  if (!cL.classList.contains('closed')) {
+    cL.classList.add('closed');
+    cR.classList.add('closed');
+    setTimeout(proceed, 800);
+  } else {
+    proceed();
+  }
+}
+
 function processSlaves() {
   if (!game) return;
   let changed = false;
   const now = Date.now();
+  const isNight = game.timeMinutes >= 0 && game.timeMinutes < 360;
   
   JOBS.forEach(job => {
     if (game.slaves[job.id]) {
@@ -1375,6 +1774,11 @@ function processSlaves() {
       if (now >= game.slaveNextWork[job.id]) {
         let pay = currentPay(job.id);
         game.money = round2(game.money + pay);
+        
+        if (isNight) {
+          game.slaveNightEarnings = (game.slaveNightEarnings || 0) + pay;
+        }
+        
         const cd = job.id === 'plates' ? 10000 : currentCooldown(job.id);
         game.slaveNextWork[job.id] = now + cd;
         showFloatingMoney(pay, 1, true);
@@ -1469,6 +1873,9 @@ function renderPlateGrid() {
   const grid = document.getElementById('plateGrid');
   grid.innerHTML = '';
   const isCooldown = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
+  const count = game.plateLayout.length;
+  const cols = Math.ceil(count / 2);
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   
   game.plateLayout.forEach(num => {
     const btn = document.createElement('button');
@@ -1807,6 +2214,9 @@ function updateAllBuyButtons() {
   
   const lBtn = document.getElementById('shop-license-buy');
   if (lBtn && !game.hasSlaveLicense) lBtn.disabled = game.money < LICENSE_PRICE;
+  
+  const cBtn = document.getElementById('shop-clock-buy');
+  if (cBtn && !game.hasClock) cBtn.disabled = game.money < CLOCK_PRICE;
 }
 
 function updateHint() {
@@ -1846,6 +2256,39 @@ function doWork() {
   const now = Date.now();
   if (game.workCooldownEnd && now < game.workCooldownEnd) return;
   
+  // Night check
+  const isNight = game.timeMinutes >= 0 && game.timeMinutes < 360;
+  if (isNight) {
+    const job = JOBS.find(j => j.id === game.selectedJobId);
+    let basePenalty = round2(currentPay(job.id) * 12.5);
+    let slavePenalty = game.slaveNightEarnings || 0;
+    let totalPenalty = round2(basePenalty + slavePenalty);
+    
+    game.money = round2(Math.max(0, game.money - totalPenalty));
+    game.slaveNightEarnings = 0;
+    game.workCooldownEnd = Date.now() + 30000;
+    game.lastCooldownDuration = 30000;
+    
+    saveGame();
+    document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+    showFloatingPenalty(totalPenalty);
+    
+    const slaveText = slavePenalty > 0 ? '<div style="font-size: 11px; color: #8a7fa5; margin-bottom: 12px;">(Includes ' + formatMoney(slavePenalty) + ' from your slaves\' night shift)</div>' : '';
+    
+    showModal('Caught!', 
+      '<div style="font-size: 13px; color: #b8a3d0; margin-bottom: 16px;">Matilda caught you working at night! She fined you:</div>' +
+      '<div style="font-size: 36px; color: #b85a7a; font-weight: bold; text-shadow: 0 0 15px rgba(184,90,122,0.5); margin-bottom: 8px;">-' + formatMoney(totalPenalty) + '</div>' +
+      slaveText +
+      '<div style="font-size: 11px; color: #6b5a8a; font-style: italic;">You are locked out of work for 30s. Tip: check the time and sleep in Your Room.</div>', 
+      'Accept', null, () => {
+        closeModal();
+        startCooldownTicker(30000);
+      }, closeModal, 'small-modal');
+      
+    updateWorkButton();
+    return;
+  }
+  
   const job = JOBS.find(j => j.id === game.selectedJobId);
   if (!job) return;
   
@@ -1878,6 +2321,15 @@ function showFloatingMoney(amount, mult, isSlave) {
   const el = document.createElement('div');
   el.className = 'floating-money' + (isSlave ? ' slave-money' : '');
   el.innerHTML = '+' + formatMoney(amount) + (mult > 1 ? '<span class="mult-text">(x' + mult.toFixed(1) + ')</span>' : '');
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function showFloatingPenalty(amount) {
+  const container = document.getElementById('balanceContainer');
+  const el = document.createElement('div');
+  el.className = 'floating-money penalty-money';
+  el.innerHTML = '-' + formatMoney(amount);
   container.appendChild(el);
   setTimeout(() => el.remove(), 2000);
 }
@@ -1960,6 +2412,23 @@ function renderShop() {
     lBuy.classList.remove('maxed');
     lBuy.classList.add('can-buy');
   }
+
+  const cCurrent = document.getElementById('shop-clock-current');
+  const cBuy = document.getElementById('shop-clock-buy');
+  
+  if (game.hasClock) {
+    cCurrent.textContent = 'Owned';
+    cBuy.textContent = 'OWNED';
+    cBuy.disabled = true;
+    cBuy.classList.add('maxed');
+    cBuy.classList.remove('can-buy');
+  } else {
+    cCurrent.textContent = 'Not owned';
+    cBuy.textContent = 'Buy — ' + formatMoney(CLOCK_PRICE);
+    cBuy.disabled = game.money < CLOCK_PRICE;
+    cBuy.classList.remove('maxed');
+    cBuy.classList.add('can-buy');
+  }
 }
 
 function buyPremium() {
@@ -1987,6 +2456,18 @@ function buyLicense() {
   renderShop();
   updateAllBuyButtons();
   renderJobs();
+}
+
+function buyClock() {
+  if (game.hasClock || game.money < CLOCK_PRICE) return;
+  game.money = round2(game.money - CLOCK_PRICE);
+  game.hasClock = true;
+  saveGame();
+  
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
+  updateAllBuyButtons();
+  updateClockUI();
 }
 
 function backToMenu() {

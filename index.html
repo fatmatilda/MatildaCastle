@@ -247,6 +247,11 @@
     pointer-events: none;
     z-index: 20;
   }
+  .floating-money.slave-money {
+    color: #d4b8ff;
+    font-size: 14px;
+    top: 10px;
+  }
   .floating-money .mult-text {
     font-size: 11px;
     color: #7a5a9a;
@@ -518,18 +523,18 @@
     will-change: max-height;
   }
   .upgrade-wrapper.open {
-    max-height: 250px;
+    max-height: 300px;
     opacity: 1;
     border-top-color: #2a2038;
   }
-  .upgrade-inner { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .upgrade-inner { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
   
   .upg-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    padding-bottom: 8px;
+    padding-bottom: 6px;
     border-bottom: 1px solid #2a2038;
   }
   .upg-item:last-child { border-bottom: none; padding-bottom: 0; }
@@ -557,6 +562,14 @@
     transform: none;
   }
   .upg-buy:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .maxed-text {
+    font-size: 10px;
+    color: #b8a37a;
+    text-align: center;
+    font-style: italic;
+    padding: 4px 0;
+  }
 
   .slave-assigned {
     font-size: 11px; color: #b8a37a; font-style: italic; letter-spacing: 1px;
@@ -650,7 +663,7 @@
   .changelog-content { text-align: left; font-size: 13px; color: #b8a3d0; line-height: 1.5; overflow-y: auto; flex: 1; padding-right: 10px; }
   .changelog-content h3 { font-size: 14px; color: #f3e6c8; margin-bottom: 4px; font-weight: normal; border-bottom: 1px solid #3a3350; padding-bottom: 4px; margin-top: 12px; }
   .changelog-content ul { padding-left: 18px; margin-bottom: 12px; }
-  .changelog-content li { margin-bottom: 2px; }
+  .changelog-content li { margin-bottom: 4px; }
   .changelog-content .date { font-size: 11px; color: #8a7fa5; font-style: italic; margin-bottom: 8px; display: block; }
   .changelog-content::-webkit-scrollbar { width: 6px; }
   .changelog-content::-webkit-scrollbar-thumb { background: #3a3350; border-radius: 3px; }
@@ -1076,22 +1089,19 @@ function showChangelog() {
     'Changelog',
     '<div class="changelog-content">' +
       '<h3>v0.1.1</h3>' +
-      '<span class="date">October 20, 2026</span>' +
+      '<span class="date">October 19, 2026</span>' +
       '<ul>' +
-        '<li>Added strictly static layout with inner scrolling for jobs</li>' +
-        '<li>Updated statistics UI</li>' +
-        '<li>Added Slave License to Shop ($50)</li>' +
-        '<li>Added Slave purchase for fully maxed jobs (automates income)</li>' +
-        '<li>Compact upgrade menu and improved maxed states</li>' +
+        '<li>Added Shop with Premium multiplier</li>' +
+        '<li>Introduced Slave System (License + automated income)</li>' +
+        '<li>Added global statistics and dynamic number formatting</li>' +
+        '<li>Static layout with inner scrolling for jobs</li>' +
       '</ul>' +
       '<h3>v0.1.0</h3>' +
       '<span class="date">October 19, 2026</span>' +
       '<ul>' +
-        '<li>Added first playable chapter: Escape from Castle</li>' +
-        '<li>Introduced core job system: Carry Boxes and Wash Dishes</li>' +
-        '<li>Added earning mechanics with dynamic cooldowns</li>' +
-        '<li>Added Shop tab with Premium multiplier</li>' +
-        '<li>Added Statistics and formatting for large numbers</li>' +
+        '<li>Initial release</li>' +
+        '<li>Added Chapter I: Escape from Castle</li>' +
+        '<li>Introduced first jobs (Carry Boxes, Wash Dishes)</li>' +
       '</ul>' +
     '</div>',
     'Close',
@@ -1248,6 +1258,7 @@ function processSlaves() {
         let pay = currentPay(job.id);
         game.money = round2(game.money + pay);
         game.slaveNextWork[job.id] = now + currentCooldown(job.id);
+        showFloatingMoney(pay, 1, true);
         changed = true;
       }
     }
@@ -1373,7 +1384,7 @@ function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) {
   let html = '';
   
   if (allMaxed && !isSlave) {
-    html += '<div style="font-size:11px; color:#b8a37a; text-align:center; font-style:italic; margin-bottom:8px;">All stats maxed out.</div>';
+    html += '<div class="maxed-text">All stats maxed out.</div>';
   } else if (!isSlave) {
     const stamC = staminaCost(jobId);
     const earnC = earningsCost(jobId);
@@ -1387,8 +1398,8 @@ function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) {
           '<div class="upg-effect">-' + (job.cdStep/1000).toFixed(1) + 's cooldown per level</div>' +
           '<div class="upg-stats">' + (cd/1000).toFixed(1) + 's → ' + (nextCd/1000).toFixed(1) + 's</div>' +
         '</div>' +
-        (stamMaxed ? '<div style="color:#b8a37a;font-size:10px;letter-spacing:1px;padding:6px;">MAXED</div>' : 
-          '<button class="upg-buy" onclick="buyUpgrade(\'' + jobId + '\', \'stamina\')" ' + (canStam ? '' : 'disabled') + '>' + formatMoney(stamC) + '</button>') +
+        (stamMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : 
+          '<button class="upg-buy" id="upg-stam-btn-' + jobId + '" onclick="buyUpgrade(\'' + jobId + '\', \'stamina\')" ' + (canStam ? '' : 'disabled') + '>' + formatMoney(stamC) + '</button>') +
       '</div>' +
       '<div class="upg-item">' +
         '<div class="upg-info">' +
@@ -1396,8 +1407,8 @@ function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) {
           '<div class="upg-effect">+' + formatMoney(job.payStep) + ' pay per level</div>' +
           '<div class="upg-stats">' + formatMoney(pay) + ' → ' + formatMoney(nextPay) + '</div>' +
         '</div>' +
-        (earnMaxed ? '<div style="color:#b8a37a;font-size:10px;letter-spacing:1px;padding:6px;">MAXED</div>' : 
-          '<button class="upg-buy" onclick="buyUpgrade(\'' + jobId + '\', \'earnings\')" ' + (canEarn ? '' : 'disabled') + '>' + formatMoney(earnC) + '</button>') +
+        (earnMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : 
+          '<button class="upg-buy" id="upg-earn-btn-' + jobId + '" onclick="buyUpgrade(\'' + jobId + '\', \'earnings\')" ' + (canEarn ? '' : 'disabled') + '>' + formatMoney(earnC) + '</button>') +
       '</div>';
   }
 
@@ -1406,12 +1417,12 @@ function renderUpgradeInnerHTML(jobId, upg, stamMaxLv, earnMaxLv) {
   } else if (game.hasSlaveLicense) {
     const sCost = slaveCost(jobId);
     const canSlave = allMaxed && game.money >= sCost;
-    html += '<div class="upg-item" style="border-top: 1px dashed #3a3350; padding-top: 8px; margin-top: 4px;">' +
+    html += '<div class="upg-item" style="border-top: 1px dashed #3a3350; padding-top: 8px; margin-top: 2px;">' +
       '<div class="upg-info">' +
         '<div class="upg-title">Slave</div>' +
         '<div class="upg-effect">Automates this job permanently</div>' +
       '</div>' +
-      '<button class="upg-buy" ' + (canSlave ? '' : 'disabled') + ' onclick="buySlave(\'' + jobId + '\')">' + 
+      '<button class="upg-buy" id="upg-slave-btn-' + jobId + '" ' + (canSlave ? '' : 'disabled') + ' onclick="buySlave(\'' + jobId + '\')">' + 
       (allMaxed ? 'Buy — ' + formatMoney(sCost) : 'Locked') + 
       '</button>' +
     '</div>';
@@ -1508,12 +1519,31 @@ function buySlave(jobId) {
 function updateAllBuyButtons() {
   JOBS.forEach(j => {
     if (game.hiredJobs.includes(j.id)) {
-      const sBtn = document.querySelector('#upg-wrap-' + j.id + ' .upg-buy:last-child'); // This is risky
-      // I need to target the slave button specifically.
-      // I'll add an ID to the slave button in renderUpgradeInnerHTML
+      const { upg, stamMaxLv, earnMaxLv } = getJobData(j.id);
+      const stamMaxed = upg.stamina >= stamMaxLv;
+      const earnMaxed = upg.earnings >= earnMaxLv;
+      
+      if (!stamMaxed) {
+        const btn = document.getElementById('upg-stam-btn-' + j.id);
+        if (btn) btn.disabled = game.money < staminaCost(j.id);
+      }
+      if (!earnMaxed) {
+        const btn = document.getElementById('upg-earn-btn-' + j.id);
+        if (btn) btn.disabled = game.money < earningsCost(j.id);
+      }
+      
+      if (game.hasSlaveLicense && !game.slaves[j.id] && stamMaxed && earnMaxed) {
+        const btn = document.getElementById('upg-slave-btn-' + j.id);
+        if (btn) btn.disabled = game.money < slaveCost(j.id);
+      }
     }
   });
-  // Instead of risky querySelector, let's just use IDs for buttons.
+  
+  const pBtn = document.getElementById('shop-premium-buy');
+  if (pBtn && pBtn.classList.contains('can-buy')) pBtn.disabled = game.money < getPremiumPrice();
+  
+  const lBtn = document.getElementById('shop-license-buy');
+  if (lBtn && !game.hasSlaveLicense) lBtn.disabled = game.money < LICENSE_PRICE;
 }
 
 function updateHint() {
@@ -1570,7 +1600,7 @@ function doWork() {
   saveGame();
   
   document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-  showFloatingMoney(pay, mult);
+  showFloatingMoney(pay, mult, false);
   updateWorkButton();
   updateAllBuyButtons();
   updateBonusText();
@@ -1578,10 +1608,10 @@ function doWork() {
   startCooldownTicker(cd);
 }
 
-function showFloatingMoney(amount, mult) {
+function showFloatingMoney(amount, mult, isSlave) {
   const container = document.getElementById('balanceContainer');
   const el = document.createElement('div');
-  el.className = 'floating-money';
+  el.className = 'floating-money' + (isSlave ? ' slave-money' : '');
   el.innerHTML = '+' + formatMoney(amount) + (mult > 1 ? '<span class="mult-text">(x' + mult.toFixed(1) + ')</span>' : '');
   container.appendChild(el);
   setTimeout(() => el.remove(), 2000);

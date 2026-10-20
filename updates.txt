@@ -1,0 +1,31 @@
+v0.1.5 | October 20, 2026
+Added Scientist Job with 5 Degrees (Math, Angles, Triangles, Chemistry)
+Added visual animations for success (green flash) and failure (red flash)
+Improved chemical equation formatting with subscripts
+Fixed apple cooldown bug where the button didn't unlock
+Rebalanced economy: next job costs $350M
+
+v0.1.4 | October 20, 2026
+Added Armor Crafter job
+Added Crafting Book with 15 recipes
+You can drag and drop items or use click-to-place
+Added Delete mode for the crafting table
+Increased sword failure penalty to 60s
+Increased lawn failure penalty to 30s
+Rebalanced economy for smoother progression
+Fixed various UI bugs and timer issues
+
+v0.1.3 | October 19, 2026
+Added "Your Room" tab with day/night cycle
+Added Sleeping and Window checking
+Night work penalty
+Added Clock to Shop
+
+v0.1.2 | October 19, 2026
+Added Plate Sorting job
+
+v0.1.1 | October 19, 2026
+Added Shop with Premium and Slave License
+
+v0.1.0 | October 19, 2026
+Initial release

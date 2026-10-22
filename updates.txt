@@ -1,3 +1,23 @@
+v0.1.7 | October 21, 2026
+Rebalanced the entire job economy for smoother pacing (10-15 mins per max upgrade)
+Reduced upgrade cost multipliers to 1.18 for fairer progression
+Elixir price now scales at 50% of the most expensive hired job
+Adjusted Slave costs (removed artificial Scientist tax, base multiplier is 1.35x)
+Scientist: Angle tolerance increased to 10 degrees
+Scientist: Triangles now show A, B, C labels
+Scientist: Shows the correct answer (angles or coefficients) upon failure
+Scientist: Chemical equations now fit in one line with smaller font
+Fixed UI bug where maxed stats showed incorrectly for Scientist
+
+v0.1.6 | October 20, 2026
+Fixed Scientist Degree 1 & 2 crash
+Fixed triangle drawing (Degree 4) using correct trigonometry
+Fixed chemistry equation parsing (ignores broken lines)
+Faster and perfectly synced input for Apples & Sword meter (no more delay)
+Slaves now work at human speed on simple jobs (Boxes, Dishes)
+Fixed 17/15 levels bug on old saves (clamps to actual max)
+Fixed several UI softlocks when clicking outside modals
+
 v0.1.5 | October 20, 2026
 Added Scientist Job with 5 Degrees (Math, Angles, Triangles, Chemistry)
 Added visual animations for success (green flash) and failure (red flash)

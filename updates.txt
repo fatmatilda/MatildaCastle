@@ -1,45 +1,69 @@
-v0.1.7 | October 21, 2026
-Rebalanced the entire job economy for smoother pacing (10-15 mins per max upgrade)
-Reduced upgrade cost multipliers to 1.18 for fairer progression
-Elixir price now scales at 50% of the most expensive hired job
-Adjusted Slave costs (removed artificial Scientist tax, base multiplier is 1.35x)
-Scientist: Angle tolerance increased to 10 degrees
-Scientist: Triangles now show A, B, C labels
-Scientist: Shows the correct answer (angles or coefficients) upon failure
-Scientist: Chemical equations now fit in one line with smaller font
-Fixed UI bug where maxed stats showed incorrectly for Scientist
+v0.1.10 | October 22, 2026
+Improved number formatting for very large and negative values
+Added compact display for item quantities in inventory
+Charts now color each segment by direction (growth vs decline)
+Added profit tracking in Treasury: gains and losses shown per item
+Average purchase cost is calculated correctly when buying at different prices
+Investments now grow only while owned
+Fixed Treasury accordion opening and closing instantly
+Minor UI polish
 
-v0.1.6 | October 20, 2026
-Fixed Scientist Degree 1 & 2 crash
-Fixed triangle drawing (Degree 4) using correct trigonometry
-Fixed chemistry equation parsing (ignores broken lines)
-Faster and perfectly synced input for Apples & Sword meter (no more delay)
-Slaves now work at human speed on simple jobs (Boxes, Dishes)
-Fixed 17/15 levels bug on old saves (clamps to actual max)
-Fixed several UI softlocks when clicking outside modals
+v0.1.9 | October 22, 2026
+Treasury charts redrawn as smooth lines with axis labels
+Price history is now preserved and graphed for investments
+Inventory moved to a separate sidebar panel
+Market list reworked into expandable cards
+Buy and sell controls moved inside each item card
+Fixed several bugs with Treasury softlocks
+
+v0.1.8 | October 22, 2026
+Added Treasury with two tabs: Market and Investments
+Added tradeable goods with fluctuating prices
+Added long-term investments with gradual growth
+Added batch buy/sell options (single, small, large, all)
+Treasury can be unlocked in the Shop
+
+v0.1.7 | October 22, 2026
+Rebalanced job economy for smoother pacing
+Reworked upgrade cost progression
+Adjusted Elixir price scaling
+Adjusted Slave pricing
+Scientist: increased angle tolerance and improved triangle drawing
+Scientist: correct answers are now shown on failure
+Scientist: chemical equations now fit on one line
+Fixed several progression bugs on old saves
+
+v0.1.6 | October 21, 2026
+Fixed several crashes in Scientist job
+Fixed triangle rendering
+Fixed chemistry equation parsing
+Fixed input timing in apples and sword minigames
+Slaves now work at human speed on simple jobs
+Fixed corrupted upgrade levels on old saves
+Fixed UI softlocks caused by closing modals incorrectly
+Minor balance adjustments
 
 v0.1.5 | October 20, 2026
-Added Scientist Job with 5 Degrees (Math, Angles, Triangles, Chemistry)
-Added visual animations for success (green flash) and failure (red flash)
-Improved chemical equation formatting with subscripts
-Fixed apple cooldown bug where the button didn't unlock
-Rebalanced economy: next job costs $350M
+Added Scientist job with multiple research degrees
+Added success and failure visual feedback
+Improved chemical formula formatting
+Fixed apple cooldown bug
+Rebalanced progression between late-game jobs
 
 v0.1.4 | October 20, 2026
 Added Armor Crafter job
-Added Crafting Book with 15 recipes
-You can drag and drop items or use click-to-place
+Added Crafting Book with recipe pages
+Added click-to-place and drag-and-drop crafting
 Added Delete mode for the crafting table
-Increased sword failure penalty to 60s
-Increased lawn failure penalty to 30s
+Increased penalties for some minigame failures
 Rebalanced economy for smoother progression
-Fixed various UI bugs and timer issues
+Fixed several UI bugs and timer issues
 
 v0.1.3 | October 19, 2026
-Added "Your Room" tab with day/night cycle
-Added Sleeping and Window checking
-Night work penalty
-Added Clock to Shop
+Added Your Room tab with day/night cycle
+Added sleeping and window curtains
+Added night work penalties
+Added Pocket Clock to the Shop
 
 v0.1.2 | October 19, 2026
 Added Plate Sorting job

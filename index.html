@@ -18,7 +18,7 @@
       <button class="menu-btn" onclick="showRules()" style="border-color: #b8a37a; color: #f3e6c8;">Rules</button>
     </div>
     <div class="bottom-right-corner">
-      <div class="version-text">v0.1.6</div>
+      <div class="version-text">v0.1.9</div>
       <button class="changelog-btn" onclick="showChangelog()">Changelog</button>
     </div>
   </div>
@@ -27,18 +27,9 @@
     <div class="scene-title">Select Chapter</div>
     <div class="divider"></div>
     <div class="chapter-list">
-      <button class="chapter-btn" onclick="selectChapter(1)">
-        <span class="ch-num">Chapter I</span>
-        <span class="ch-name">Escape from Castle</span>
-      </button>
-      <button class="chapter-btn locked" disabled>
-        <span class="ch-num">Chapter II</span>
-        <span class="soon">soon</span>
-      </button>
-      <button class="chapter-btn locked" disabled>
-        <span class="ch-num">Chapter III</span>
-        <span class="soon">soon</span>
-      </button>
+      <button class="chapter-btn" onclick="selectChapter(1)"><span class="ch-num">Chapter I</span><span class="ch-name">Escape from Castle</span></button>
+      <button class="chapter-btn locked" disabled><span class="ch-num">Chapter II</span><span class="soon">soon</span></button>
+      <button class="chapter-btn locked" disabled><span class="ch-num">Chapter III</span><span class="soon">soon</span></button>
     </div>
     <button class="back-btn" onclick="showMenu()">Back</button>
   </div>
@@ -47,9 +38,7 @@
     <div class="scene-title">Chapter I</div>
     <h1 class="title" style="font-size: clamp(24px, 4vw, 40px);">Escape from Castle</h1>
     <div class="divider"></div>
-    <div class="desc-box">
-      <p>Matilda rules this castle with cruelty, and she must fall. Take whatever work the castle offers. Earn every coin. Save without mercy — until you can afford a single can of Coca-Cola. Offer it to her. She drinks. She dies. And the gates will open at last for you.</p>
-    </div>
+    <div class="desc-box"><p>Matilda rules this castle with cruelty, and she must fall. Take whatever work the castle offers. Earn every coin. Save without mercy — until you can afford a single can of Coca-Cola. Offer it to her. She drinks. She dies. And the gates will open at last for you.</p></div>
     <div class="desc-actions">
       <button id="newGameBtn" onclick="requestNewGame()">New Game</button>
       <button id="continueBtn" onclick="continueGame()" disabled>Continue</button>
@@ -59,69 +48,39 @@
 
   <div id="gameScreen" class="hidden">
     <div class="game-top">
-      <div class="balance-container" id="balanceContainer">
-        <span class="balance-label">Balance</span>
-        <span class="balance-value" id="balanceDisplay">$0.00</span>
-      </div>
+      <div class="balance-container" id="balanceContainer"><span class="balance-label">Balance</span><span class="balance-value" id="balanceDisplay">$0.00</span></div>
       <button class="menu-mini" onclick="backToMenu()">Menu</button>
     </div>
     <div class="tabs">
       <button class="tab-btn" data-tab="room" onclick="switchTab('room')">Your Room</button>
+      <button class="tab-btn" data-tab="work" onclick="switchTab('work')">Work</button>
       <button class="tab-btn" data-tab="garden" onclick="switchTab('garden')">Garden</button>
-      <button class="tab-btn active" data-tab="work" onclick="switchTab('work')">Work</button>
       <button class="tab-btn" data-tab="shop" onclick="switchTab('shop')">Shop</button>
+      <button class="tab-btn hidden" id="tab-treasury" data-tab="treasury" onclick="switchTab('treasury')">Treasury</button>
     </div>
     <div class="game-body">
-      
       <div class="tab-panel" id="panel-room">
         <div class="room-container">
           <div class="section-label">Your Room</div>
-          <div class="window-frame">
-            <div class="window-sky" id="windowSky">
-              <div id="celestialBody"></div>
-            </div>
-            <div class="curtain left closed" id="curtainLeft"></div>
-            <div class="curtain right closed" id="curtainRight"></div>
-          </div>
+          <div class="window-frame"><div class="window-sky" id="windowSky"><div id="celestialBody"></div></div><div class="curtain left closed" id="curtainLeft"></div><div class="curtain right closed" id="curtainRight"></div></div>
           <button class="room-btn" onclick="checkWindow()">Open Curtains</button>
           <button class="room-btn warn" onclick="showRules()">⚠ Castle Rules</button>
-          <div class="bed-area">
-            <button class="bed-btn" onclick="sleep()">🛏 Sleep for 8 hours</button>
-          </div>
-          <div class="calendar-display hidden" id="calendarDisplay">
-            Calendar: <span id="calendarDay">Monday</span>
-          </div>
+          <div class="bed-area"><button class="bed-btn" onclick="sleep()">🛏 Sleep for 8 hours</button></div>
+          <div class="calendar-display hidden" id="calendarDisplay">Calendar: <span id="calendarDay">Monday</span></div>
         </div>
       </div>
 
       <div class="tab-panel" id="panel-garden">
         <div class="garden-container">
           <div class="section-label">Garden</div>
-          
-          <div class="satiety-bar">
-            <div class="satiety-fill" id="satietyFill"></div>
-            <div class="satiety-text" id="satietyText">100% Satiety (1.00x)</div>
-          </div>
-
+          <div class="satiety-bar"><div class="satiety-fill" id="satietyFill"></div><div class="satiety-text" id="satietyText">100% Satiety (1.00x)</div></div>
           <div class="apple-tree-area">
-            <div class="apple-game-track hidden" id="appleTrack">
-              <div class="apple-green-zone" id="appleGreenZone"></div>
-              <div class="apple-pointer" id="applePointer" style="left: 0%;"></div>
-            </div>
+            <div class="apple-game-track hidden" id="appleTrack"><div class="apple-green-zone" id="appleGreenZone"></div><div class="apple-pointer" id="applePointer" style="left: 0%;"></div></div>
             <button class="apple-pick-btn" id="startAppleBtn" onclick="startAppleGame()">Pick Apples</button>
-            <div class="apple-cd-wrapper">
-              <div class="apple-cd-bar">
-                <div class="apple-cd-fill" id="appleCdFill"></div>
-              </div>
-              <div class="apple-cd-text" id="appleCdText">0.0s</div>
-            </div>
+            <div class="apple-cd-wrapper"><div class="apple-cd-bar"><div class="apple-cd-fill" id="appleCdFill"></div></div><div class="apple-cd-text" id="appleCdText">0.0s</div></div>
           </div>
-
           <div class="table-area">
-            <div class="inventory-info">
-              <div>Apples: <span id="invApples">0</span></div>
-              <div>Elixirs: <span id="invElixirs">0</span></div>
-            </div>
+            <div class="inventory-info"><div>Apples: <span id="invApples">0</span></div><div>Elixirs: <span id="invElixirs">0</span></div></div>
             <div style="display:flex; flex-direction:column; gap:10px;">
               <button class="action-btn" onclick="eatApple(event)">Eat Apple (+5%)</button>
               <button class="action-btn" onclick="drinkElixir(event)">Drink Elixir (5h)</button>
@@ -133,52 +92,30 @@
       <div class="tab-panel active" id="panel-work">
         <div class="col-left" id="workAreaContainer">
           <div class="section-label">Work</div>
-          
           <div id="workClock" class="clock-display hidden">Time: 08:00</div>
-
-          <div id="workBtnContainer">
-            <button id="workBtn" class="work-btn" disabled onclick="doWork()">Work</button>
-          </div>
-          
-          <div class="plate-container hidden" id="plateContainer">
-            <div class="plate-grid" id="plateGrid"></div>
-          </div>
-
+          <div id="workBtnContainer"><button id="workBtn" class="work-btn" disabled onclick="doWork()">Work</button></div>
+          <div class="plate-container hidden" id="plateContainer"><div class="plate-grid" id="plateGrid"></div></div>
           <div class="lawn-area hidden" id="lawnContainer">
             <canvas id="lawnCanvas" width="320" height="100"></canvas>
-            <div class="lawn-accuracy">
-              <div class="lawn-acc-fill" id="lawnAccFill"></div>
-            </div>
+            <div class="lawn-accuracy"><div class="lawn-acc-fill" id="lawnAccFill"></div></div>
             <div id="lawnAccText" style="font-size:12px; color:#b8a37a; margin-bottom:5px;">Accuracy: 100.00%</div>
             <div id="lawnStatusText" style="font-size:12px; color:#b8a37a; margin-bottom:10px;">Hold mouse and trace the line</div>
             <button class="work-btn" id="lawnStartBtn" onclick="startLawnGame()">Start Mowing</button>
           </div>
-
           <div class="sword-area hidden" id="swordContainer">
             <div class="sword-hits" id="swordHitsText">Hits: 0 / 5</div>
             <div style="display:flex; align-items:center; gap: 15px;">
-              <div class="sword-meter-container" id="swordMeterContainer">
-                <div class="sword-meter-fill" id="swordMeterFill"></div>
-              </div>
+              <div class="sword-meter-container" id="swordMeterContainer"><div class="sword-meter-fill" id="swordMeterFill"></div></div>
               <div id="swordHitMarker" style="font-size: 24px; color: #b8a37a; font-weight: bold; width: 60px; text-align: left;">0%</div>
             </div>
             <button class="work-btn" id="swordHitBtn" onclick="hitSword()">Strike!</button>
           </div>
-
           <div class="armorer-area hidden" id="armorerContainer">
-            <div id="armorerStartContainer" style="width: 100%; display: flex; justify-content: center;">
-              <button class="work-btn" id="armorerStartBtn" onclick="startArmorerWork()">Start Crafting</button>
-            </div>
-
+            <div id="armorerStartContainer" style="width: 100%; display: flex; justify-content: center;"><button class="work-btn" id="armorerStartBtn" onclick="startArmorerWork()">Start Crafting</button></div>
             <div id="armorerCraftContainer" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-              <div class="armorer-header">
-                <div class="armorer-order" id="armorerOrderName">Order: </div>
-                <button class="action-btn" onclick="openRecipeBook()" style="padding: 6px 12px; font-size: 11px;">📖 Book</button>
-              </div>
-              
+              <div class="armorer-header"><div class="armorer-order" id="armorerOrderName">Order: </div><button class="action-btn" onclick="openRecipeBook()" style="padding: 6px 12px; font-size: 11px;">📖 Book</button></div>
               <div class="craft-table" id="craftTable"></div>
               <div class="inventory-bar" id="inventoryBar"></div>
-              
               <div style="display:flex; gap:8px; margin-top:15px; width: 100%; align-items: center; justify-content: center;">
                 <button class="work-btn" style="margin:0; padding: 12px 30px; font-size: 16px;" id="craftBtn" onclick="finishArmorerCraft()">Craft!</button>
                 <button class="delete-btn" id="deleteModeBtn" onclick="toggleDeleteMode()">Delete</button>
@@ -186,65 +123,67 @@
               </div>
             </div>
           </div>
-
           <div class="writer-area hidden" id="writerContainer">
-            <div id="writerStartContainer" style="width: 100%; display: flex; justify-content: center;">
-              <button class="work-btn" id="writerStartBtn" onclick="startWriterWork()">Start Writing</button>
-            </div>
-
+            <div id="writerStartContainer" style="width: 100%; display: flex; justify-content: center;"><button class="work-btn" id="writerStartBtn" onclick="startWriterWork()">Start Writing</button></div>
             <div id="writerActiveContainer" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
               <div class="poem-container" id="poemContainer"></div>
               <div class="hint" style="margin-top: 0; margin-bottom: 10px; color: #8a7fa5;">Type the text as shown. Your layout doesn't matter — physical keys are used.</div>
             </div>
           </div>
-
           <div class="scientist-area hidden" id="scientistContainer">
-            <div id="scientistStartContainer" style="width: 100%; display: flex; justify-content: center;">
-              <button class="work-btn" id="scientistStartBtn" onclick="startScientistWork()">Start Research</button>
-            </div>
-
+            <div id="scientistStartContainer" style="width: 100%; display: flex; justify-content: center;"><button class="work-btn" id="scientistStartBtn" onclick="startScientistWork()">Start Research</button></div>
             <div id="scientistActiveContainer" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-              <div class="sci-board" id="sciBoard">
-                <canvas id="sciCanvas" class="hidden" width="300" height="200"></canvas>
-                <div id="sciTaskText" class="sci-task-row"></div>
-              </div>
+              <div class="sci-board" id="sciBoard"><canvas id="sciCanvas" class="hidden" width="300" height="200"></canvas><div id="sciTaskText" class="sci-task-row"></div></div>
               <button class="work-btn sci-submit-btn" id="scientistSubmitBtn" onclick="submitScientistTask()">Submit Answer</button>
             </div>
           </div>
-          
           <div class="cooldown-container" id="globalCooldownContainer">
-            <div class="cooldown-bar inactive" id="cooldownBar">
-              <div class="cooldown-fill" id="cooldownFill"></div>
-            </div>
-            <div class="cooldown-text-row">
-              <span class="label">Cooldown</span>
-              <span id="cooldownText">0.0s</span>
-            </div>
+            <div class="cooldown-bar inactive" id="cooldownBar"><div class="cooldown-fill" id="cooldownFill"></div></div>
+            <div class="cooldown-text-row"><span class="label">Cooldown</span><span id="cooldownText">0.0s</span></div>
           </div>
-          
           <div class="bonus-text" id="bonusText"></div>
           <div class="hint" id="workHint">Hire a job to begin earning.</div>
         </div>
-        <div class="col-right">
-          <div class="section-label">Jobs</div>
-          <div class="job-list" id="jobList"></div>
-        </div>
+        <div class="col-right"><div class="section-label">Jobs</div><div class="job-list" id="jobList"></div></div>
       </div>
 
       <div class="tab-panel" id="panel-shop">
-        <div class="shop-container">
-          <div class="section-label">Shop</div>
-          <div id="shopList"></div>
-        </div>
+        <div class="shop-container"><div class="section-label">Shop</div><div id="shopList"></div></div>
       </div>
 
+      <div class="tab-panel" id="panel-treasury">
+        <div class="treasury-container">
+          <div class="treasury-tabs">
+            <button class="tres-tab active" id="tres-tab-market" onclick="switchTresTab('market')">Market</button>
+            <button class="tres-tab" id="tres-tab-investments" onclick="switchTresTab('investments')">Investments</button>
+          </div>
+          <div class="tres-content active" id="tres-market">
+            <div class="tres-layout">
+              <div class="tres-sidebar"><div class="section-label">Your Inventory</div><div class="tres-inventory" id="marketInventory"></div></div>
+              <div class="tres-main"><div class="section-label">Market</div><div class="tres-market-list" id="marketList"></div></div>
+            </div>
+          </div>
+          <div class="tres-content" id="tres-investments">
+            <div class="tres-layout">
+              <div class="tres-sidebar"><div class="section-label">Your Portfolio</div><div class="tres-inventory" id="investInventory"></div></div>
+              <div class="tres-main"><div class="section-label">Investments</div><div class="tres-market-list" id="investList"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-
 <div id="sleepOverlay"></div>
 <div id="modalRoot"></div>
-
-<script src="script.js"></script>
+<script src="js/data.js"></script>
+<script src="js/economy.js"></script>
+<script src="js/save.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/treasury.js"></script>
+<script src="js/jobs.js"></script>
+<script src="js/minigames.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

@@ -2366,3 +2366,153 @@ canvas.tres-chart {
     max-height: 200px;
   }
 }
+
+/* ============================================================
+   DISTILLERY
+   ============================================================ */
+.distillery-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.distillery-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 15px;
+  background: rgba(30, 20, 50, 0.6);
+  border: 1px solid #2a2038;
+  border-radius: 4px;
+}
+
+.dist-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #e8e3d8;
+}
+
+.dist-info .shop-buy {
+  font-size: 12px;
+  padding: 6px 15px;
+}
+
+.distillery-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr); /* Жестко 10 колонок */
+  gap: 8px;
+  padding: 20px;
+  background: rgba(20, 12, 30, 0.4);
+  border: 1px solid #2a2038;
+  border-radius: 4px;
+}
+
+/* Адаптив для маленьких экранов, чтобы не ломалось */
+@media (max-width: 1000px) {
+  .distillery-grid { grid-template-columns: repeat(5, 1fr); }
+}
+@media (max-width: 600px) {
+  .distillery-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.barrel {
+  background: #1a1228;
+  border: 2px solid #3a3350;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.barrel:hover {
+  border-color: #b8a37a;
+  background: #2a1a3a;
+}
+
+.barrel.empty {
+  border-style: dashed;
+  color: #6b5a8a;
+  font-size: 12px;
+  text-align: center;
+}
+
+.barrel.empty:hover {
+  color: #f3e6c8;
+}
+
+.barrel .wine-name {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.barrel .wine-timer {
+  font-size: 11px;
+  font-family: monospace;
+  color: #d4b8ff;
+}
+
+.barrel .wine-price {
+  font-size: 12px;
+  color: #a8c256;
+  margin-top: 5px;
+  font-weight: bold;
+}
+
+.barrel-progress-bg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.barrel-progress-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 1s linear, background-color 1s;
+}
+
+.distillery-tooltip {
+  text-align: center;
+  font-size: 13px;
+  color: #8a7fa5;
+  font-style: italic;
+}
+
+/* Фикс скроллбара для книги Винодельни */
+.book-modal .rules-content {
+  padding-right: 18px !important;
+  scrollbar-gutter: stable;
+}
+
+.book-modal .rules-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.book-modal .rules-content::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+.book-modal .rules-content::-webkit-scrollbar-thumb {
+  background: #5a4a6a;
+  border-radius: 4px;
+}

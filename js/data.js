@@ -1,17 +1,11 @@
 const SAVE_KEY = 'matilda_castle_save';
 const GLOBAL_STATS_KEY = 'matilda_global_stats';
-const CURRENT_VERSION = 'v0.1.10';
+const CURRENT_VERSION = 'v0.1.11';
 
 const RESOURCES = [
-  { id: 'FE', name: 'Iron' },
-  { id: 'WD', name: 'Wood' },
-  { id: 'LE', name: 'Leather' },
-  { id: 'CL', name: 'Cloth' },
-  { id: 'AU', name: 'Gold' },
-  { id: 'DI', name: 'Diamond' },
-  { id: 'ST', name: 'String' },
-  { id: 'CO', name: 'Coal' },
-  { id: 'OB', name: 'Obsidian' },
+  { id: 'FE', name: 'Iron' }, { id: 'WD', name: 'Wood' }, { id: 'LE', name: 'Leather' },
+  { id: 'CL', name: 'Cloth' }, { id: 'AU', name: 'Gold' }, { id: 'DI', name: 'Diamond' },
+  { id: 'ST', name: 'String' }, { id: 'CO', name: 'Coal' }, { id: 'OB', name: 'Obsidian' },
   { id: 'GL', name: 'Glass' }
 ];
 
@@ -70,7 +64,21 @@ const INVEST_ITEMS = [
   { id: 'endowment', name: 'Crown Endowment', base: 100000000000, rate: 0.015 }
 ];
 
-// ---- Глобальное состояние ----
+const WINE_STAGES = [
+  { id: 'raw', name: 'Raw', min: 0, max: 180, mult: 0.25, color: '#6b5a8a' },
+  { id: 'normal', name: 'Normal', min: 180, max: 300, mult: 1, color: '#a8c256' },
+  { id: 'good', name: 'Good', min: 300, max: 420, mult: 2, color: '#4a90e2' },
+  { id: 'great', name: 'Great', min: 420, max: 510, mult: 3, color: '#b8a37a' },
+  { id: 'legendary', name: 'Legendary', min: 510, max: 570, mult: 5, color: '#e76f51' },
+  { id: 'exquisite', name: 'Exquisite', min: 570, max: 600, mult: 10, color: '#d4b8ff' },
+  { id: 'spoiled', name: 'Spoiled', min: 600, max: Infinity, mult: 0.1, color: '#b85a7a' }
+];
+
+const MAX_BARRELS = 20;
+const BUTLER_COST = 25000000;
+const BUTLER2_COST = 75000000;
+const DISTILLERY_COST = 5000000;
+
 let CHEM_EQUATIONS = [];
 let poems = [];
 let JOBS = [];
@@ -87,6 +95,7 @@ let lawnAnimInterval = null;
 let uiInterval = null;
 let marketTickInterval = null;
 let investTickInterval = null;
+let distilleryTickInterval = null;
 let sessionTime = 0;
 let openUpgradePanels = {};
 let updateShown = false;
@@ -128,5 +137,4 @@ let isResearchingActive = false;
 let sciTasks = [];
 let sciCurrentTaskIndex = 0;
 
-// ---- Состояние аккордеона в Сокровищнице (для фикса "вспышки") ----
 let openTresItemId = null;

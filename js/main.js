@@ -61,6 +61,13 @@ function startNewGame() {
     hasSlaveLicense: false,
     hasClock: false,
     hasTreasury: false,
+    hasDistillery: false,
+    grapeLevel: 1,
+    hasButler: false,
+    butlerOn: false,
+    hasButler2: false,
+    butler2On: false,
+    barrels: [{ id: 1, startTime: 0, mustPrice: 0 }],
     timeMinutes: 480,
     dayOfWeek: 0,
     lastCurtainTime: -120,
@@ -130,6 +137,7 @@ async function launchChapter(n) {
   hideAllScenes();
   document.getElementById('gameScreen').classList.remove('hidden');
   document.getElementById('tab-treasury').classList.toggle('hidden', !game.hasTreasury);
+  document.getElementById('tab-distillery').classList.toggle('hidden', !game.hasDistillery);
 
   switchTab('work');
   renderGame();
@@ -193,6 +201,9 @@ async function launchChapter(n) {
 
   if (investTickInterval) clearInterval(investTickInterval);
   investTickInterval = setInterval(processInvestTick, 720000);
+
+  if (distilleryTickInterval) clearInterval(distilleryTickInterval);
+  distilleryTickInterval = setInterval(updateDistilleryTick, 1000);
 
   setupLawnCanvas();
   startSwordMeter();
@@ -298,6 +309,9 @@ function switchTab(tab) {
     } else {
       renderInvestUI();
     }
+  }
+  if (tab === 'distillery') {
+    renderDistilleryUI();
   }
 
   updateWorkButton();

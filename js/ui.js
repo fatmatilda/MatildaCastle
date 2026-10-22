@@ -46,13 +46,6 @@ function showScene(id) {
 }
 
 function stopAllIntervals() {
-  const names = ['playTimer', 'cooldownInterval', 'slaveInterval', 'lawnAnimInterval', 'uiInterval', 'marketTickInterval', 'investTickInterval'];
-  names.forEach(k => {
-    if (window[k]) {
-      clearInterval(window[k]);
-      window[k] = null;
-    }
-  });
   if (playTimer) { clearInterval(playTimer); playTimer = null; }
   if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
   if (slaveInterval) { clearInterval(slaveInterval); slaveInterval = null; }
@@ -60,6 +53,7 @@ function stopAllIntervals() {
   if (uiInterval) { clearInterval(uiInterval); uiInterval = null; }
   if (marketTickInterval) { clearInterval(marketTickInterval); marketTickInterval = null; }
   if (investTickInterval) { clearInterval(investTickInterval); investTickInterval = null; }
+  if (distilleryTickInterval) { clearInterval(distilleryTickInterval); distilleryTickInterval = null; }
   if (appleRAF) { cancelAnimationFrame(appleRAF); appleRAF = null; }
   if (swordRAF) { cancelAnimationFrame(swordRAF); swordRAF = null; }
   window.removeEventListener('keydown', handleWriterKeydown);
@@ -147,7 +141,7 @@ function checkVersionPopup() {
       };
       showModal(
         'Update ' + CURRENT_VERSION,
-        '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Fixed accordion flash in Treasury.<br>• Investments only grow while owned.<br>• Properly formatted code split into files.</div>',
+        '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Added Distillery.<br>• Added butler auto-collect.<br>• Fixed number formatting.</div>',
         'Okay', null, markSeen, markSeen
       );
     }, 800);
@@ -172,7 +166,7 @@ function showRules() {
     '<div class="rules-content active" id="rules-basics"><h3>Goal</h3><p>Earn money to buy a Coca-Cola. Give it to Matilda to escape.</p><h3>Work</h3><p>Each job has pay and cooldown. Upgrades improve them.</p></div>' +
     '<div class="rules-content" id="rules-time"><h3>Day & Night</h3><p>1 hour = 30 real sec.</p><h3>Night Work</h3><p>Forbidden. Fine: 12.5x pay + slave night earnings.</p><h3>Sleep</h3><p>Once per day (8h). 5% balance, -25% satiety.</p></div>' +
     '<div class="rules-content" id="rules-hunger"><h3>Satiety</h3><p>-1% every 12s.</p><h3>Apples</h3><p>+5% each in Garden.</p><h3>Elixirs</h3><p>Halve cooldowns for 5 game hours.</p></div>' +
-    '<div class="rules-content" id="rules-shop"><h3>Premium</h3><p>Every 10th click extra multiplier.</p><h3>Calendar</h3><p>Weekend bonuses.</p><h3>Slaves</h3><p>Automate upgraded jobs.</p><h3>Clock</h3><p>Shows time in Work.</p><h3>Treasury</h3><p>Market speculation + investments.</p></div>',
+    '<div class="rules-content" id="rules-shop"><h3>Premium</h3><p>Every 10th click extra multiplier.</p><h3>Calendar</h3><p>Weekend bonuses.</p><h3>Slaves</h3><p>Automate upgraded jobs.</p><h3>Clock</h3><p>Shows time in Work.</p><h3>Treasury</h3><p>Market speculation + investments.</p><h3>Distillery</h3><p>Age wine for profit. Butler auto-collects Great wine.</p></div>',
     'Close', null, closeModal, closeModal);
 }
 

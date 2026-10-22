@@ -18,7 +18,7 @@
       <button class="menu-btn" onclick="showRules()" style="border-color: #b8a37a; color: #f3e6c8;">Rules</button>
     </div>
     <div class="bottom-right-corner">
-      <div class="version-text">v0.1.9</div>
+      <div class="version-text">v0.1.11</div>
       <button class="changelog-btn" onclick="showChangelog()">Changelog</button>
     </div>
   </div>
@@ -57,8 +57,10 @@
       <button class="tab-btn" data-tab="garden" onclick="switchTab('garden')">Garden</button>
       <button class="tab-btn" data-tab="shop" onclick="switchTab('shop')">Shop</button>
       <button class="tab-btn hidden" id="tab-treasury" data-tab="treasury" onclick="switchTab('treasury')">Treasury</button>
+      <button class="tab-btn hidden" id="tab-distillery" data-tab="distillery" onclick="switchTab('distillery')">Distillery</button>
     </div>
     <div class="game-body">
+      
       <div class="tab-panel" id="panel-room">
         <div class="room-container">
           <div class="section-label">Your Room</div>
@@ -171,6 +173,38 @@
           </div>
         </div>
       </div>
+
+      <div class="tab-panel" id="panel-distillery">
+        <div class="distillery-container">
+          <div class="distillery-header">
+            <div class="dist-info">
+              <div>Grape Level: <span id="grapeLevelText">1</span> / 10</div>
+              <button class="shop-buy" id="upgradeGrapeBtn" onclick="upgradeGrape(event)">Upgrade — <span id="grapeCostText">$1.0M</span></button>
+            </div>
+            <div class="dist-info">
+              <div>Butler: <span id="butlerStatus">Not owned</span></div>
+              <button class="shop-buy" id="butlerBuyBtn" onclick="buyButler(event)">Buy — $25.0M</button>
+              <button class="shop-buy hidden" id="butlerToggleBtn" onclick="toggleButler()">Turn ON</button>
+            </div>
+            <div class="dist-info">
+              <div>Brewer: <span id="butler2Status">Not owned</span></div>
+              <button class="shop-buy" id="butler2BuyBtn" onclick="buyButler2(event)">Buy — $75.0M</button>
+              <button class="shop-buy hidden" id="butler2ToggleBtn" onclick="toggleButler2()">Turn ON</button>
+            </div>
+            <div class="dist-info">
+              <div>Barrels: <span id="barrelCountText">1</span> / 20</div>
+              <button class="shop-buy" id="buyBarrelBtn" onclick="buyBarrel(event)">Buy Barrel — <span id="barrelCostText">$150K</span></button>
+            </div>
+            <div class="dist-info">
+              <div>Rules & Timing</div>
+              <button class="shop-buy" onclick="openDistilleryBook()" style="border-color:#b8a37a; color:#f3e6c8;">Book</button>
+            </div>
+          </div>
+          <div class="distillery-grid" id="distilleryGrid"></div>
+          <div class="distillery-tooltip">Fill empty barrels to age wine. Sell at the right time for max profit!</div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -181,6 +215,7 @@
 <script src="js/save.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/treasury.js"></script>
+<script src="js/distillery.js"></script>
 <script src="js/jobs.js"></script>
 <script src="js/minigames.js"></script>
 <script src="js/shop.js"></script>

@@ -19,6 +19,9 @@ function renderShop() {
   const tBtn = game.hasTreasury ? 'OWNED' : 'Buy — ' + formatMoney(75000);
   list.innerHTML += `<div class="shop-item"><div class="shop-info"><div class="shop-title">Treasury</div><div class="shop-desc">Unlocks Market and Investments tab.</div><div class="shop-current">${game.hasTreasury ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyTreasury(event)" ${game.hasTreasury || game.money < 75000 ? 'disabled' : ''}>${tBtn}</button></div>`;
 
+  const dBtn = game.hasDistillery ? 'OWNED' : 'Buy — ' + formatMoney(DISTILLERY_COST);
+  list.innerHTML += `<div class="shop-item"><div class="shop-info"><div class="shop-title">Distillery</div><div class="shop-desc">Unlocks the Distillery tab. Age wine for profit.</div><div class="shop-current">${game.hasDistillery ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyDistillery(event)" ${game.hasDistillery || game.money < DISTILLERY_COST ? 'disabled' : ''}>${dBtn}</button></div>`;
+
   const blvl = game.basketLevel;
   const bprice = getBasketPrice();
   const bBtn = blvl >= 4 ? 'MAXED' : 'Upgrade — ' + formatMoney(bprice);
@@ -80,6 +83,17 @@ function buyTreasury(e) {
   updateAllBuyButtons();
 }
 
+function buyDistillery(e) {
+  if (game.hasDistillery || game.money < DISTILLERY_COST) { triggerError(e.target); return; }
+  game.money = round2(game.money - DISTILLERY_COST);
+  game.hasDistillery = true;
+  saveGame();
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  document.getElementById('tab-distillery').classList.remove('hidden');
+  renderShop();
+  updateAllBuyButtons();
+}
+
 function buyBasket(e) {
   if (game.basketLevel >= 4) return;
   const p = getBasketPrice();
@@ -114,7 +128,6 @@ function buyCalendar(e) {
   renderCalendar();
 }
 
-// ---- Room / Sleep ----
 function checkWindow() {
   if (!game) return;
   let diff = game.timeMinutes - game.lastCurtainTime;

@@ -1,6 +1,9 @@
 const SAVE_KEY = 'matilda_castle_save';
 const GLOBAL_STATS_KEY = 'matilda_global_stats';
-const CURRENT_VERSION = 'v0.1.14';
+const CURRENT_VERSION = 'v0.1.15';
+
+const JACKPOT_LEVELS = [100000, 1000000, 10000000, 100000000, 1000000000];
+const JACKPOT_MULTS = [5, 10, 15, 20, 30];
 
 const RESOURCES = [
   { id: 'FE', name: 'Iron' }, { id: 'WD', name: 'Wood' }, { id: 'LE', name: 'Leather' },

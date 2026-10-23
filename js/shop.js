@@ -5,7 +5,28 @@ function renderShop() {
 
   const items = [];
 
-  // 1. Premium
+  // 1. Golden Apple
+  const gaPrice = getGoldenApplePrice();
+  items.push({
+    price: gaPrice,
+    html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Golden Apple</div><div class="shop-desc">Instantly restores 100% satiety.</div><div class="shop-current">Owned: ${game.goldenApples}</div></div><button class="shop-buy" onclick="buyGoldenApple(event)" ${game.money < gaPrice ? 'disabled' : ''}>Buy — ${formatMoney(gaPrice)}</button></div>`
+  });
+
+  // 2. Sustenance Potion
+  const spPrice = getSustenancePotionPrice();
+  items.push({
+    price: spPrice,
+    html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Sustenance Potion</div><div class="shop-desc">Halves hunger speed for 2.5 minutes.</div><div class="shop-current">Owned: ${game.sustenancePotions}</div></div><button class="shop-buy" onclick="buySustenance(event)" ${game.money < spPrice ? 'disabled' : ''}>Buy — ${formatMoney(spPrice)}</button></div>`
+  });
+
+  // 3. Insurance Potion
+  const ipPrice = getInsurancePotionPrice();
+  items.push({
+    price: ipPrice,
+    html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Insurance Potion</div><div class="shop-desc">Blocks all minigame fines for 2.5 minutes.</div><div class="shop-current">Owned: ${game.insurancePotions}</div></div><button class="shop-buy" onclick="buyInsurance(event)" ${game.money < ipPrice ? 'disabled' : ''}>Buy — ${formatMoney(ipPrice)}</button></div>`
+  });
+
+  // 4. Premium
   const plvl = getPremiumLevel();
   const pprice = getPremiumPrice();
   const pmaxed = plvl >= 10;
@@ -14,19 +35,37 @@ function renderShop() {
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Premium</div><div class="shop-desc">Every 10th work click gives a multiplier.</div><div class="shop-current">${plvl > 0 ? 'Level ' + plvl + ' (x' + getPremiumMult().toFixed(1) + ')' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyPremium(event)" ${pmaxed || game.money < pprice ? 'disabled' : ''}>${pmaxed ? 'MAXED' : (plvl === 0 ? 'Buy — ' : 'Upgrade — ') + formatMoney(pprice)}</button></div>`
   });
 
-  // 2. Slave License
+  // 5. Slave License
   items.push({
     price: game.hasSlaveLicense ? Infinity : 50,
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Slave License</div><div class="shop-desc">Unlocks slaves for fully upgraded jobs.</div><div class="shop-current">${game.hasSlaveLicense ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyLicense(event)" ${game.hasSlaveLicense || game.money < 50 ? 'disabled' : ''}>${game.hasSlaveLicense ? 'OWNED' : 'Buy — ' + formatMoney(50)}</button></div>`
   });
 
-  // 3. Pocket Clock
+  // 6. Pocket Clock
   items.push({
     price: game.hasClock ? Infinity : 1500,
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Pocket Clock</div><div class="shop-desc">Shows current game time in Work tab.</div><div class="shop-current">${game.hasClock ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyClock(event)" ${game.hasClock || game.money < 1500 ? 'disabled' : ''}>${game.hasClock ? 'OWNED' : 'Buy — ' + formatMoney(1500)}</button></div>`
   });
 
-  // 4. Harvesting Basket
+  // 7. Jackpot
+  const jlvl = game.jackpotLevel || 0;
+  const jprice = getJackpotPrice();
+  const jmaxed = jlvl >= 5;
+  const jCurrentMult = jmaxed ? JACKPOT_MULTS[4] : (jlvl > 0 ? JACKPOT_MULTS[jlvl - 1] : 0);
+  const jNextMult = jmaxed ? 0 : JACKPOT_MULTS[jlvl];
+  items.push({
+    price: jmaxed ? Infinity : jprice,
+    html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Jackpot</div><div class="shop-desc">Every 100th act gives a multiplier.${jmaxed ? '' : ' Next: x' + jNextMult + '.'}</div><div class="shop-current">${jmaxed ? 'Level 5 / 5 (x' + jCurrentMult + ')' : jlvl === 0 ? 'Not owned' : 'Level ' + jlvl + ' / 5 (x' + jCurrentMult + ')'}</div></div><button class="shop-buy" onclick="buyJackpot(event)" ${jmaxed || game.money < jprice ? 'disabled' : ''}>${jmaxed ? 'MAXED' : (jlvl === 0 ? 'Buy — ' : 'Upgrade — ') + formatMoney(jprice)}</button></div>`
+  });
+
+  // 8. Night Totem
+  const totemPrice = getTotemPrice();
+  items.push({
+    price: totemPrice,
+    html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Night Totem</div><div class="shop-desc">One-time use. Absorbs a night penalty — no money lost, no lockout.</div><div class="shop-current">Owned: ${game.nightTotems}</div></div><button class="shop-buy" onclick="buyTotem(event)" ${game.money < totemPrice ? 'disabled' : ''}>Buy — ${formatMoney(totemPrice)}</button></div>`
+  });
+
+  // 9. Harvesting Basket
   const blvl = game.basketLevel;
   const bprice = getBasketPrice();
   items.push({
@@ -34,7 +73,7 @@ function renderShop() {
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Harvesting Basket</div><div class="shop-desc">More apples per pick. Longer cooldown.</div><div class="shop-current">Level ${blvl} (${blvl + 1} apples / ${3 + blvl * 2}s)</div></div><button class="shop-buy" onclick="buyBasket(event)" ${blvl >= 4 || game.money < bprice ? 'disabled' : ''}>${blvl >= 4 ? 'MAXED' : 'Upgrade — ' + formatMoney(bprice)}</button></div>`
   });
 
-  // 5. Offline Slave Work
+  // 10. Offline Slave Work
   const oLvl = game.offlineLevel;
   const oMax = 20;
   const oCost = oLvl === 0 ? OFFLINE_COSTS[0] : (oLvl < oMax ? OFFLINE_COSTS[oLvl] : 0);
@@ -46,45 +85,101 @@ function renderShop() {
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Offline Slave Work</div><div class="shop-desc">${oDesc}</div><div class="shop-current">Level ${oLvl} / ${oMax}</div></div><button class="shop-buy" onclick="buyOffline(event)" ${oMaxed || game.money < oCost ? 'disabled' : ''}>${oMaxed ? 'MAXED' : (oLvl === 0 ? 'Buy — ' : 'Upgrade — ') + formatMoney(oCost)}</button></div>`
   });
 
-  // 6. Calendar
+  // 11. Calendar
   const calLvl = game.calendarLevel;
   const calPrice = getCalendarPrice();
-  const calDesc = calLvl === 0 ? 'Unlocks weekend bonus (Sat x2)' : calLvl === 1 ? 'Adds Sunday (x2)' : calLvl === 2 ? 'Weekend x3' : 'Maxed';
+  const calDesc = calLvl === 0 ? 'Unlocks weekend bonus (Fri x2)' : calLvl === 1 ? 'Adds Saturday (x2)' : calLvl === 2 ? 'Weekend x3' : 'Maxed';
   items.push({
     price: calLvl >= 3 ? Infinity : calPrice,
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Calendar</div><div class="shop-desc">${calDesc}</div><div class="shop-current">Level ${calLvl}</div></div><button class="shop-buy" onclick="buyCalendar(event)" ${calLvl >= 3 || game.money < calPrice ? 'disabled' : ''}>${calLvl >= 3 ? 'MAXED' : 'Upgrade — ' + formatMoney(calPrice)}</button></div>`
   });
 
-  // 7. Income Meter
+  // 12. Income Meter
   items.push({
     price: game.hasPassiveIncomeMeter ? Infinity : 50000,
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Income Meter</div><div class="shop-desc">Shows your slaves' total income per second next to your balance.</div><div class="shop-current">${game.hasPassiveIncomeMeter ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyPassiveMeter(event)" ${game.hasPassiveIncomeMeter || game.money < 50000 ? 'disabled' : ''}>${game.hasPassiveIncomeMeter ? 'OWNED' : 'Buy — ' + formatMoney(50000)}</button></div>`
   });
 
-  // 8. Treasury
+  // 13. Treasury
   items.push({
     price: game.hasTreasury ? Infinity : 75000,
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Treasury</div><div class="shop-desc">Unlocks Market and Investments tab.</div><div class="shop-current">${game.hasTreasury ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyTreasury(event)" ${game.hasTreasury || game.money < 75000 ? 'disabled' : ''}>${game.hasTreasury ? 'OWNED' : 'Buy — ' + formatMoney(75000)}</button></div>`
   });
 
-  // 9. Herbal Elixir
+  // 14. Herbal Elixir
   const ePrice = getElixirPrice();
   items.push({
     price: ePrice,
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Herbal Elixir</div><div class="shop-desc">Halves cooldowns for 5 game hours.</div><div class="shop-current">Owned: ${game.elixirs}</div></div><button class="shop-buy" onclick="buyElixir(event)" ${game.money < ePrice ? 'disabled' : ''}>Buy — ${formatMoney(ePrice)}</button></div>`
   });
 
-  // 10. Distillery
+  // 15. Distillery
   items.push({
     price: game.hasDistillery ? Infinity : DISTILLERY_COST,
     html: `<div class="shop-item"><div class="shop-info"><div class="shop-title">Distillery</div><div class="shop-desc">Unlocks the Distillery tab. Age wine for profit.</div><div class="shop-current">${game.hasDistillery ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyDistillery(event)" ${game.hasDistillery || game.money < DISTILLERY_COST ? 'disabled' : ''}>${game.hasDistillery ? 'OWNED' : 'Buy — ' + formatMoney(DISTILLERY_COST)}</button></div>`
   });
 
-  // Сортируем по цене (от дешевых к дорогим)
   items.sort((a, b) => a.price - b.price);
-
-  // Выводим
   items.forEach(item => list.innerHTML += item.html);
+}
+
+// ============================================================
+// BUY FUNCTIONS
+// ============================================================
+function buyGoldenApple(e) {
+  const p = getGoldenApplePrice();
+  if (game.money < p) { triggerError(e.target); return; }
+  game.money = round2(game.money - p);
+  game.goldenApples++;
+  saveGame();
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
+  updateHungerUI();
+}
+
+function buySustenance(e) {
+  const p = getSustenancePotionPrice();
+  if (game.money < p) { triggerError(e.target); return; }
+  game.money = round2(game.money - p);
+  game.sustenancePotions++;
+  saveGame();
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
+  updateHungerUI();
+}
+
+function buyInsurance(e) {
+  const p = getInsurancePotionPrice();
+  if (game.money < p) { triggerError(e.target); return; }
+  game.money = round2(game.money - p);
+  game.insurancePotions++;
+  saveGame();
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
+  updateHungerUI();
+}
+
+function buyTotem(e) {
+  const p = getTotemPrice();
+  if (game.money < p) { triggerError(e.target); return; }
+  game.money = round2(game.money - p);
+  game.nightTotems++;
+  saveGame();
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
+  updateHungerUI();
+}
+
+function buyJackpot(e) {
+  if (game.jackpotLevel >= 5) return;
+  const p = getJackpotPrice();
+  if (game.money < p) { triggerError(e.target); return; }
+  game.money = round2(game.money - p);
+  game.jackpotLevel++;
+  saveGame();
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
+  updateBonusText();
 }
 
 function buyPremium(e) {
@@ -115,11 +210,9 @@ function buyOffline(e) {
   if (game.offlineLevel >= 20) return;
   const cost = OFFLINE_COSTS[game.offlineLevel];
   if (game.money < cost) { triggerError(e.target); return; }
-  
   game.money = round2(game.money - cost);
   game.offlineLevel++;
   saveGame();
-  
   document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
   renderShop();
 }
@@ -201,6 +294,9 @@ function buyCalendar(e) {
   renderCalendar();
 }
 
+// ============================================================
+// ROOM / SLEEP
+// ============================================================
 function checkWindow() {
   if (!game) return;
   let diff = game.timeMinutes - game.lastCurtainTime;

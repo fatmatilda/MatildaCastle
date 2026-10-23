@@ -82,6 +82,16 @@ function startNewGame() {
     playTime: 0,
     workClicks: 0,
     premiumLevel: 0,
+
+    // NEW v0.1.15
+    jackpotLevel: 0,
+    goldenApples: 0,
+    sustenancePotions: 0,
+    insurancePotions: 0,
+    nightTotems: 0,
+    sustenanceEndTime: 0,
+    insuranceEndTime: 0,
+
     plateLayout: [],
     plateCurrentTarget: 1,
     marketItems: MARKET_ITEMS.map(i => ({
@@ -140,17 +150,17 @@ async function launchChapter(n) {
   if (game.offlineLevel > 0 && game.lastQuitTime) {
     const now = Date.now();
     const diffSeconds = Math.max(0, Math.floor((now - game.lastQuitTime) / 1000));
-    
+
     if (diffSeconds >= 30) {
       const maxSeconds = OFFLINE_CAPS_HOURS[game.offlineLevel - 1] * 3600;
       const actualSeconds = Math.min(diffSeconds, maxSeconds);
-      
+
       const incomePerSec = getSlaveIncomePerSecond();
       offlineEarned = round2(incomePerSec * actualSeconds * 0.3);
-      
+
       if (offlineEarned > 0) {
         game.money = round2(game.money + offlineEarned);
-        
+
         const hoursAway = Math.floor(diffSeconds / 3600);
         const minsAway = Math.floor((diffSeconds % 3600) / 60);
         let timeText = '';
@@ -172,9 +182,9 @@ async function launchChapter(n) {
         `<div style="font-size: 14px; color: #b8a3d0; margin-bottom: 20px;">Your slaves worked at 30% efficiency and earned:</div>` +
         `<div style="font-size: 32px; color: #a8c256; font-weight: bold; margin-bottom: 16px;">+${formatMoney(offlineEarned)}</div>` +
         `<div style="font-size: 11px; color: #8a7fa5;">Max offline time: ${OFFLINE_CAPS_HOURS[game.offlineLevel - 1]} hours.</div>`,
-        'Collect', null, 
-        () => { closeModal(); saveGame(); }, 
-        () => { closeModal(); saveGame(); }, 
+        'Collect', null,
+        () => { closeModal(); saveGame(); },
+        () => { closeModal(); saveGame(); },
         'small-modal');
     }, 500);
   }
@@ -214,11 +224,15 @@ async function launchChapter(n) {
     updateSkyUI();
     updateClockUI();
     updateBonusText();
-    if (Date.now() - game.lastSatietyDrop > 12000) {
+
+    // Sustenance Potion halves hunger speed (24s instead of 12s)
+    const satietyThreshold = Date.now() < game.sustenanceEndTime ? 24000 : 12000;
+    if (Date.now() - game.lastSatietyDrop > satietyThreshold) {
       game.satiety = Math.max(0, game.satiety - 1);
       game.lastSatietyDrop = Date.now();
       updateHungerUI();
     }
+
     if (sessionTime % 10 === 0) {
       game.playTime = (game.playTime || 0) + 10;
       const stats = getGlobalStats();
@@ -285,7 +299,7 @@ function renderWorkArea() {
   document.getElementById('swordContainer').classList.toggle('hidden', !isSword);
   const chestEl = document.getElementById('chestContainer');
   if (chestEl) chestEl.classList.toggle('hidden', !isChest);
-  
+
   document.getElementById('armorerContainer').classList.toggle('hidden', !isArmorer);
   document.getElementById('writerContainer').classList.toggle('hidden', !isWriter);
   document.getElementById('scientistContainer').classList.toggle('hidden', !isScientist);
@@ -391,19 +405,10 @@ function updateSkyUI() {
   const h = game.timeMinutes / 60;
   let c1, c2;
 
-  if (h >= 6 && h < 12) {
-    c1 = '#2c1e4a';
-    c2 = '#f4a261';
-  } else if (h >= 12 && h < 18) {
-    c1 = '#4a90e2';
-    c2 = '#a1c4fd';
-  } else if (h >= 18 && h < 24) {
-    c1 = '#e76f51';
-    c2 = '#f4a261';
-  } else {
-    c1 = '#0b0b0f';
-    c2 = '#1a1228';
-  }
+  if (h >= 6 && h < 12) { c1 = '#2c1e4a'; c2 = '#f4a261'; }
+  else if (h >= 12 && h < 18) { c1 = '#4a90e2'; c2 = '#a1c4fd'; }
+  else if (h >= 18 && h < 24) { c1 = '#e76f51'; c2 = '#f4a261'; }
+  else { c1 = '#0b0b0f'; c2 = '#1a1228'; }
 
   el.style.background = `linear-gradient(180deg, ${c1}, ${c2})`;
 
@@ -448,6 +453,10 @@ function updateHungerUI() {
 
   document.getElementById('invApples').textContent = game.apples;
   document.getElementById('invElixirs').textContent = game.elixirs;
+  document.getElementById('invGoldenApples').textContent = game.goldenApples;
+  document.getElementById('invSustenance').textContent = game.sustenancePotions;
+  document.getElementById('invInsurance').textContent = game.insurancePotions;
+  document.getElementById('invTotems').textContent = game.nightTotems;
 }
 
 function renderCalendar() {

@@ -157,6 +157,16 @@ function normalizeState(s) {
     playTime: typeof s.playTime === 'number' ? s.playTime : 0,
     workClicks: typeof s.workClicks === 'number' ? s.workClicks : 0,
     premiumLevel: typeof s.premiumLevel === 'number' ? s.premiumLevel : 0,
+
+    // --- NEW v0.1.15 ---
+    jackpotLevel: typeof s.jackpotLevel === 'number' ? s.jackpotLevel : 0,
+    goldenApples: typeof s.goldenApples === 'number' ? s.goldenApples : 0,
+    sustenancePotions: typeof s.sustenancePotions === 'number' ? s.sustenancePotions : 0,
+    insurancePotions: typeof s.insurancePotions === 'number' ? s.insurancePotions : 0,
+    nightTotems: typeof s.nightTotems === 'number' ? s.nightTotems : 0,
+    sustenanceEndTime: typeof s.sustenanceEndTime === 'number' ? s.sustenanceEndTime : 0,
+    insuranceEndTime: typeof s.insuranceEndTime === 'number' ? s.insuranceEndTime : 0,
+
     plateLayout: Array.isArray(s.plateLayout) ? s.plateLayout : [],
     plateCurrentTarget: typeof s.plateCurrentTarget === 'number' ? s.plateCurrentTarget : 1,
     marketItems: marketItems,

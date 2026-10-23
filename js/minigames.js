@@ -1,5 +1,12 @@
-// Глобальные переменные для взломщика
 let chestAttemptRot = 0;
+
+// ============================================================
+// INSURANCE HELPER
+// ============================================================
+function applyInsurance(rawPen) {
+  if (game && Date.now() < game.insuranceEndTime) return { amount: 0, insured: true };
+  return { amount: rawPen, insured: false };
+}
 
 // ============================================================
 // MINIGAME: APPLES
@@ -171,13 +178,13 @@ function hitSword() {
       updateBonusText();
       triggerAnim(true);
     } else {
-      const pen = round2(currentPay('sword') * 2);
+      const { amount: pen, insured } = applyInsurance(round2(currentPay('sword') * 2));
       game.money = round2(Math.max(0, game.money - pen));
       const cd = applyCooldownMult(60000);
       game.workCooldownEnd = Date.now() + cd;
       game.lastCooldownDuration = cd;
       game.lastCooldownMult = getHungerMult() * getElixirMult();
-      showFloatingPenalty(pen);
+      if (pen > 0) showFloatingPenalty(pen);
       startCooldownTicker();
       btn.classList.add('btn-fail');
       btn.textContent = 'Failed!';
@@ -186,7 +193,8 @@ function hitSword() {
       updateAllBuyButtons();
       updateBonusText();
       triggerAnim(false);
-      setTimeout(() => showModal('Failed!', 'Sword broke. Fine: ' + formatMoney(pen) + '.', 'Accept', null, closeModal, closeModal, 'small-modal'), 600);
+      const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
+      setTimeout(() => showModal('Failed!', 'Sword broke. Fine: ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal'), 600);
     }
     setTimeout(() => {
       document.getElementById('swordHitsText').textContent = 'Hits: 0 / 5';
@@ -353,14 +361,15 @@ function finishLawnJob(success) {
   } else {
     btn.classList.add('btn-fail');
     btn.textContent = 'Failed!';
-    const pen = round2(currentPay('lawn') * 2);
+    const { amount: pen, insured } = applyInsurance(round2(currentPay('lawn') * 2));
     game.money = round2(Math.max(0, game.money - pen));
     const cd = applyCooldownMult(30000);
     game.workCooldownEnd = Date.now() + cd;
     game.lastCooldownDuration = cd;
     game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingPenalty(pen);
-    showModal('Failed!', 'Lawn ruined. Fine: ' + formatMoney(pen) + '.', 'Accept', null, closeModal, closeModal, 'small-modal');
+    if (pen > 0) showFloatingPenalty(pen);
+    const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
+    showModal('Failed!', 'Lawn ruined. Fine: ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal');
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
     updateAllBuyButtons();
     updateBonusText();
@@ -460,7 +469,7 @@ function finishPlateJob() {
 }
 
 // ============================================================
-// MINIGAME: CHEST LOCKER (Dying Light Style)
+// MINIGAME: CHEST LOCKER
 // ============================================================
 function startChestGame() {
   if (!game || game.selectedJobId !== 'chest' || game.slaves['chest']) return;
@@ -481,7 +490,7 @@ function startChestGame() {
   btn.disabled = true;
   btn.classList.add('btn-cooldown');
   btn.textContent = 'Picking...';
-  
+
   document.getElementById('chestJamFill').style.width = '0%';
   document.getElementById('chestJamText').textContent = 'Lockpick break: 0%';
   document.getElementById('chestStatusText').textContent = 'Move mouse to rotate, hold LMB to pick.';
@@ -505,13 +514,13 @@ function startChestGame() {
   canvas.onmousedown = (e) => {
     if (!chestActive || chestJammed) return;
     if (e.button !== 0) return;
-    
+
     chestIsTurning = true;
     chestAttemptRot = 0;
-    
+
     let dist = Math.abs(chestAngle - chestTarget);
     if (dist > 180) dist = 360 - dist;
-    
+
     if (dist <= 5) {
       chestMaxRot = 360;
     } else {
@@ -525,18 +534,18 @@ function startChestGame() {
 
   window.onmouseup = () => {
     if (!chestActive) return;
-    
+
     if (chestJammed) {
       chestTotalJamTime += (Date.now() - chestJamStartTime);
-      
+
       if (chestTotalJamTime >= 3000) {
-         chestActive = false;
-         chestJammed = false;
-         if (chestRAF) cancelAnimationFrame(chestRAF);
-         chestRAF = null;
-         window.onmouseup = null;
-         finishChestJob(false);
-         return;
+        chestActive = false;
+        chestJammed = false;
+        if (chestRAF) cancelAnimationFrame(chestRAF);
+        chestRAF = null;
+        window.onmouseup = null;
+        finishChestJob(false);
+        return;
       }
 
       chestJammed = false;
@@ -545,8 +554,8 @@ function startChestGame() {
     } else {
       chestIsTurning = false;
     }
-    
-    chestAttemptRot = 0; 
+
+    chestAttemptRot = 0;
     drawChest();
   };
 
@@ -569,12 +578,12 @@ function animateChestLock(ts) {
     if (chestAttemptRot >= 360) {
       chestAttemptRot = 360;
       drawChest();
-      
+
       chestActive = false;
       if (chestRAF) cancelAnimationFrame(chestRAF);
       chestRAF = null;
       window.onmouseup = null;
-      
+
       finishChestJob(true);
       return;
     }
@@ -609,7 +618,7 @@ function startJamTimer() {
     const totalElapsed = chestTotalJamTime + elapsed;
     const limit = 3000;
     const pct = Math.min(100, Math.floor((totalElapsed / limit) * 100));
-    
+
     fill.style.width = pct + '%';
     text.textContent = 'Lockpick break: ' + pct + '%';
 
@@ -652,8 +661,7 @@ function drawChest() {
   if (chestActive && chestAttemptRot > 0) {
     let startRad = -Math.PI / 2;
     let endRad = startRad + (chestAttemptRot * Math.PI / 180);
-    
-    // Убираем зазор в конце дуги, перекрывая её на 0.02 радиана
+
     if (chestAttemptRot >= 360) {
       endRad = startRad + Math.PI * 2 + 0.02;
     }
@@ -662,7 +670,7 @@ function drawChest() {
     ctx.arc(150, 150, 90, startRad, endRad, false);
     ctx.strokeStyle = chestJammed ? '#b85a7a' : '#d4b8ff';
     ctx.lineWidth = 12;
-    ctx.lineCap = 'butt'; 
+    ctx.lineCap = 'butt';
     ctx.stroke();
   }
 
@@ -708,7 +716,7 @@ function finishChestJob(success) {
     btn.classList.add('btn-success');
     btn.textContent = 'Success!';
     document.getElementById('chestStatusText').textContent = 'Unlocked!';
-    
+
     let pay = currentPay('chest');
     const mult = getActionMultiplier();
     pay = round2(pay * mult);
@@ -728,33 +736,33 @@ function finishChestJob(success) {
     btn.classList.add('btn-fail');
     btn.textContent = 'Failed!';
     document.getElementById('chestStatusText').textContent = 'Pick broke!';
-    
-    const pen = round2(currentPay('chest') * 2);
+
+    const { amount: pen, insured } = applyInsurance(round2(currentPay('chest') * 2));
     game.money = round2(Math.max(0, game.money - pen));
-    const cd = applyCooldownMult(60000); 
+    const cd = applyCooldownMult(60000);
     game.workCooldownEnd = Date.now() + cd;
     game.lastCooldownDuration = cd;
     game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingPenalty(pen);
+    if (pen > 0) showFloatingPenalty(pen);
 
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
     updateAllBuyButtons();
     updateBonusText();
     triggerAnim(false);
 
+    const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
     setTimeout(() => {
-      showModal('Failed!', 'The lockpick broke! Matilda fined you ' + formatMoney(pen) + '.', 'Accept', null, closeModal, closeModal, 'small-modal');
+      showModal('Failed!', 'The lockpick broke! Matilda fined you ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal');
     }, 600);
   }
 
   saveGame();
   updateWorkButton();
   startCooldownTicker();
-  
+
   setTimeout(() => {
     document.getElementById('chestStatusText').textContent = 'Move mouse to rotate, hold LMB to pick.';
     if (btn.classList.contains('btn-cooldown')) btn.textContent = 'Cooldown';
-    // Сбрасываем полоску только когда кулдаун уже пошел
     chestAttemptRot = 0;
     document.getElementById('chestJamFill').style.width = '0%';
     document.getElementById('chestJamText').textContent = 'Lockpick break: 0%';
@@ -906,13 +914,13 @@ function finishArmorerCraft() {
   } else {
     btn.classList.add('btn-fail');
     btn.textContent = 'Failed!';
-    const pen = round2(currentPay('armorer') * 3);
+    const { amount: pen, insured } = applyInsurance(round2(currentPay('armorer') * 3));
     game.money = round2(Math.max(0, game.money - pen));
     const cd = applyCooldownMult(90000);
     game.workCooldownEnd = Date.now() + cd;
     game.lastCooldownDuration = cd;
     game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingPenalty(pen);
+    if (pen > 0) showFloatingPenalty(pen);
     startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
     updateAllBuyButtons();
@@ -927,7 +935,8 @@ function finishArmorerCraft() {
         btn.textContent = 'Craft!';
         renderArmorerUI();
       };
-      showModal('Failed!', 'Armor ruined. Fine: ' + formatMoney(pen) + '.', 'Accept', null, reset, reset, 'small-modal');
+      const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
+      showModal('Failed!', 'Armor ruined. Fine: ' + formatMoney(pen) + '.' + extra, 'Accept', null, reset, reset, 'small-modal');
     }, 600);
   }
   saveGame();
@@ -1083,20 +1092,21 @@ function finishWriterJob(success) {
     triggerAnim(true);
     renderWriterUI();
   } else {
-    const pen = round2(currentPay('writer') * 2);
+    const { amount: pen, insured } = applyInsurance(round2(currentPay('writer') * 2));
     game.money = round2(Math.max(0, game.money - pen));
     const cd = applyCooldownMult(60000);
     game.workCooldownEnd = Date.now() + cd;
     game.lastCooldownDuration = cd;
     game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingPenalty(pen);
+    if (pen > 0) showFloatingPenalty(pen);
     startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
     updateAllBuyButtons();
     updateBonusText();
     triggerAnim(false);
     renderWriterUI();
-    showModal('Failed!', 'Poem ruined. Fine: ' + formatMoney(pen) + '.', 'Accept', null, closeModal, closeModal, 'small-modal');
+    const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
+    showModal('Failed!', 'Poem ruined. Fine: ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal');
   }
   saveGame();
 }
@@ -1332,13 +1342,13 @@ function finishScientistJob(success, failedTask) {
       renderScientistUI();
     }, 1000);
   } else {
-    const pen = round2(currentPay('scientist') * 3);
+    const { amount: pen, insured } = applyInsurance(round2(currentPay('scientist') * 3));
     game.money = round2(Math.max(0, game.money - pen));
     const cd = applyCooldownMult(90000);
     game.workCooldownEnd = Date.now() + cd;
     game.lastCooldownDuration = cd;
     game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingPenalty(pen);
+    if (pen > 0) showFloatingPenalty(pen);
     startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
     updateAllBuyButtons();
@@ -1361,7 +1371,8 @@ function finishScientistJob(success, failedTask) {
         btn.classList.remove('btn-fail');
         renderScientistUI();
       };
-      showModal('Failed!', 'Research failed. Fine: ' + formatMoney(pen) + '.<br><br><span style="color:#a8c256;font-weight:bold;">' + reason + '</span>', 'Accept', null, reset, reset, 'small-modal');
+      const extra = insured ? '<br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
+      showModal('Failed!', 'Research failed. Fine: ' + formatMoney(pen) + '.' + extra + '<br><br><span style="color:#a8c256;font-weight:bold;">' + reason + '</span>', 'Accept', null, reset, reset, 'small-modal');
     }, 1000);
   }
   saveGame();

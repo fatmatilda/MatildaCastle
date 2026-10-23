@@ -1,6 +1,9 @@
 function getActionMultiplier() {
   let mult = 1;
   if (game.premiumLevel > 0 && game.workClicks % 10 === 0) mult *= getPremiumMult();
+  if (game.jackpotLevel > 0 && game.workClicks % 100 === 0) {
+    mult *= JACKPOT_MULTS[game.jackpotLevel - 1];
+  }
   if (game.calendarLevel > 0) {
     if (game.dayOfWeek === 5) mult *= game.calendarLevel === 3 ? 3 : 2;
     if (game.dayOfWeek === 6 && game.calendarLevel >= 2) mult *= game.calendarLevel === 3 ? 3 : 2;
@@ -158,16 +161,16 @@ function selectJob(id) {
   if (game.selectedJobId === id || game.slaves[id]) return;
   game.selectedJobId = id;
   saveGame();
-  
+
   if (id === 'plates') generatePlateLayout(currentPlates('plates'));
-  
+
   if (id === 'sword') {
     swordHits = 0;
     swordStrikes = 0;
     swordStartTime = 0;
     swordAnimating = false;
   }
-  
+
   if (id === 'chest') {
     chestActive = false;
     chestJammed = false;
@@ -182,10 +185,10 @@ function selectJob(id) {
   }
   if (id === 'writer') isWritingActive = false;
   if (id === 'scientist') isResearchingActive = false;
-  
+
   isLawnDrawing = false;
   lawnStarted = false;
-  
+
   renderJobs();
   updateWorkButton();
   renderWorkArea();
@@ -326,22 +329,43 @@ function updateBonusText() {
       ? `<div>Premium: next act (x${getPremiumMult().toFixed(1)})</div>`
       : `<div>Premium in: ${10 - cm} acts (x${getPremiumMult().toFixed(1)})</div>`;
   }
+  if (game.jackpotLevel > 0 && game.hiredJobs.length > 0) {
+    const cj = game.workClicks % 100;
+    const jm = JACKPOT_MULTS[game.jackpotLevel - 1];
+    html += cj === 99
+      ? `<div style="color:#f3e6c8; margin-top:4px;">Jackpot: next act (x${jm})</div>`
+      : `<div style="color:#b8a37a; margin-top:4px;">Jackpot in: ${100 - cj} acts (x${jm})</div>`;
+  }
   if (game.calendarLevel > 0 && (game.dayOfWeek === 5 || (game.dayOfWeek === 6 && game.calendarLevel >= 2))) {
     const m = game.calendarLevel === 3 ? 3 : 2;
     html += `<div style="color:#f3e6c8; margin-top:4px;">Weekend Bonus: x${m} active</div>`;
   }
   if (game.selectedJobId) {
     const hm = getHungerMult();
-    const em = getElixirMult();
     html += `<div style="color:#b85a7a; margin-top:4px; font-weight:bold;">Hunger: ${(1 / hm).toFixed(2)}x speed</div>`;
-    if (em < 1) html += `<div style="color:#a8c256; margin-top:4px;">Elixir: 2x speed</div>`;
+    // Убрал отсюда дублирование Эликсира
   }
+  
   if (Date.now() < game.elixirEndTime) {
     const rem = Math.floor((game.elixirEndTime - Date.now()) / 1000);
     const m = Math.floor(rem / 60);
     const s = rem % 60;
-    html += `<div style="color:#a8c256; margin-top:4px; font-size:11px;">(${m}m ${s}s left)</div>`;
+    html += `<div style="color:#a8c256; margin-top:4px; font-size:11px;">Elixir: 2x speed (${m}m ${s}s)</div>`;
   }
+  if (Date.now() < game.sustenanceEndTime) {
+    const rem = Math.floor((game.sustenanceEndTime - Date.now()) / 1000);
+    const m = Math.floor(rem / 60);
+    const s = rem % 60;
+    // Изменил цвет на мятный #4ade80
+    html += `<div style="color:#4ade80; margin-top:4px; font-size:11px;">Sustenance: Halves hunger (${m}m ${s}s)</div>`;
+  }
+  if (Date.now() < game.insuranceEndTime) {
+    const rem = Math.floor((game.insuranceEndTime - Date.now()) / 1000);
+    const m = Math.floor(rem / 60);
+    const s = rem % 60;
+    html += `<div style="color:#4a90e2; margin-top:4px; font-size:11px;">Insurance: Fines blocked (${m}m ${s}s)</div>`;
+  }
+  
   el.innerHTML = html;
 }
 
@@ -498,6 +522,18 @@ function resetWorkButtonsAfterCooldown() {
 }
 
 function triggerNightPenalty(jobId) {
+  if (game.nightTotems > 0) {
+    game.nightTotems--;
+    saveGame();
+    updateHungerUI();
+    triggerAnim(true);
+    showModal('Saved by the Totem!',
+      `<div style="font-size: 13px; color: #b8a3d0; margin-bottom: 16px;">Matilda's guards almost caught you, but the Night Totem shattered, absorbing the punishment. You lose no money and no time.</div>` +
+      `<div style="font-size: 12px; color: #a8c256; font-weight: bold;">-1 Night Totem</div>`,
+      'Continue', null, closeModal, closeModal, 'small-modal');
+    return;
+  }
+
   const job = JOBS.find(j => j.id === jobId);
   const basePen = round2(currentPay(jobId) * 12.5);
   const slavePen = game.slaveNightEarnings || 0;
@@ -521,7 +557,7 @@ function triggerNightPenalty(jobId) {
   const reset = () => { closeModal(); startCooldownTicker(); };
 
   showModal('Caught!',
-    `<div style="color: #b8a3d0; margin-bottom: 16px;">Night work is forbidden!</div><div style="font-size: 36px; color: #b85a7a; font-weight: bold;">-${formatMoney(total)}</div>${slaveText}<div style="font-size: 11px; color: #6b5a8a; margin-top: 8px;">Locked 30s.</div>`,
+    `<div style="color: #b8a3d0; margin-bottom: 16px;">Night work is forbidden!</div><div style="font-size: 36px; color: #b85a7a; font-weight: bold;">-${formatMoney(total)}</div>${slaveText}<div style="font-size: 11px; color: #6b5a8a; margin-top: 8px;">Locked 30s. Tip: use a Night Totem next time.</div>`,
     'Accept', null, reset, reset, 'small-modal');
 
   updateWorkButton();

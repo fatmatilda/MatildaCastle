@@ -62,7 +62,7 @@ function stopAllIntervals() {
 function showModal(title, text, confirmLabel, cancelLabel, onConfirm, onCancel, customClass = '') {
   const root = document.getElementById('modalRoot');
   const cancelHtml = cancelLabel ? '<button id="modalCancel">' + cancelLabel + '</button>' : '';
-  const isSpecial = ['Changelog', 'Statistics', 'Rules', 'Crafting Book', 'Outside', 'Slept', 'Promo Codes'].includes(title) || title.startsWith('Update');
+  const isSpecial = ['Changelog', 'Statistics', 'Rules', 'Crafting Book', 'Outside', 'Slept', 'Promo Codes', 'Saved by the Totem!'].includes(title) || title.startsWith('Update');
   root.innerHTML =
     '<div class="modal-overlay" id="modalOverlay">' +
       '<div class="modal ' + customClass + '">' +
@@ -141,7 +141,7 @@ function checkVersionPopup() {
       };
       showModal(
         'Update ' + CURRENT_VERSION,
-        '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Added Income Meter.<br>• Shop items sorted by price.</div>',
+        '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Added Jackpot upgrade (x5–x30 every 100th act)<br>• Added Golden Apple, Sustenance Potion, Insurance Potion<br>• Added Night Totem — survives night penalty<br>• All consumable prices scale with your top job\'s base pay<br>• Sustenance halves hunger speed, Insurance blocks minigame fines</div>',
         'Okay', null, markSeen, markSeen
       );
     }, 800);
@@ -159,14 +159,66 @@ function showRules() {
   showModal('Rules',
     '<div class="rules-tabs">' +
       '<button class="rules-tab active" onclick="switchRulesTab(\'basics\', event)">Basics</button>' +
+      '<button class="rules-tab" onclick="switchRulesTab(\'jobs\', event)">Jobs</button>' +
       '<button class="rules-tab" onclick="switchRulesTab(\'time\', event)">Time</button>' +
-      '<button class="rules-tab" onclick="switchRulesTab(\'hunger\', event)">Hunger</button>' +
-      '<button class="rules-tab" onclick="switchRulesTab(\'shop\', event)">Shop</button>' +
+      '<button class="rules-tab" onclick="switchRulesTab(\'items\', event)">Items</button>' +
+      '<button class="rules-tab" onclick="switchRulesTab(\'economy\', event)">Economy</button>' +
     '</div>' +
-    '<div class="rules-content active" id="rules-basics"><h3>Goal</h3><p>Earn money to buy a Coca-Cola. Give it to Matilda to escape.</p><h3>Work</h3><p>Each job has pay and cooldown. Upgrades improve them.</p></div>' +
-    '<div class="rules-content" id="rules-time"><h3>Day & Night</h3><p>1 hour = 30 real sec.</p><h3>Night Work</h3><p>Forbidden. Fine: 12.5x pay + slave night earnings.</p><h3>Sleep</h3><p>Once per day (8h). 5% balance, -25% satiety.</p></div>' +
-    '<div class="rules-content" id="rules-hunger"><h3>Satiety</h3><p>-1% every 12s.</p><h3>Apples</h3><p>+5% each in Garden.</p><h3>Elixirs</h3><p>Halve cooldowns for 5 game hours.</p></div>' +
-    '<div class="rules-content" id="rules-shop"><h3>Premium</h3><p>Every 10th click extra multiplier.</p><h3>Calendar</h3><p>Weekend bonuses.</p><h3>Slaves</h3><p>Automate upgraded jobs.</p><h3>Clock</h3><p>Shows time in Work.</p><h3>Treasury</h3><p>Market speculation + investments.</p><h3>Distillery</h3><p>Age wine for profit. Butler auto-collects Great wine.</p></div>',
+
+    // --- BASICS ---
+    '<div class="rules-content active" id="rules-basics">' +
+      '<h3>Goal</h3><p>Earn money to buy a Coca-Cola. Give it to Matilda to escape.</p>' +
+      '<h3>Working</h3><p>Select a job and click "Work" (or play a minigame). Each job has a base pay and a cooldown.</p>' +
+      '<h3>Upgrades</h3><ul>' +
+        '<li><b>Stamina:</b> Reduces the cooldown between jobs.</li>' +
+        '<li><b>Earnings:</b> Increases the base payout of the job.</li>' +
+        '<li><b>Special:</b> Some jobs have unique stats (Capacity for Plates, Precision for Lawn/Sword/Chest, Degree for Scientist).</li>' +
+      '</ul>' +
+      '<h3>Slaves</h3><p>Once you max out ALL upgrades for a specific job and buy the <b>Slave License</b> in the Shop, you can buy a Slave. Slaves work automatically forever, even when you are offline (with the Offline upgrade).</p>' +
+    '</div>' +
+
+    // --- JOBS (MINIGAMES) ---
+    '<div class="rules-content" id="rules-jobs">' +
+      '<h3>Simple Jobs</h3><p>Boxes and Dishes just require clicking the Work button.</p>' +
+      '<h3>Plate Sorting</h3><p>Click the plates in numerical order (1, 2, 3...). One mistake resets the sequence.</p>' +
+      '<h3>Lawn Mowing</h3><p>Click and hold near the start dot. Trace the line perfectly with your mouse. Moving too far away from the line drops your accuracy and you fail.</p>' +
+      '<h3>Sword Forging</h3><p>Hit the moving power meter 5 times. The sum of your 5 hits must reach the threshold (starts at 465).</p>' +
+      '<h3>Armor Crafter</h3><p>Look at the Order name. Open the Book to see the recipe. Drag and drop (or click) resources from the bottom bar to fill the 6x6 grid exactly as shown.</p>' +
+      '<h3>Writer</h3><p>Type the displayed poem exactly as shown. You can buy a "Draft" upgrade to allow 1 typo.</p>' +
+      '<h3>Scientist</h3><p>Solve tasks based on your Degree: basic math, angles, triangle angles, or chemistry equations (fill in the missing coefficients).</p>' +
+      '<h3>Chest Locker</h3><p>Move your mouse to rotate the pick. Hold LMB to start picking. The pick will jam if you start at the wrong angle. Release LMB to reset a jam. If the jam bar fills completely, you fail.</p>' +
+    '</div>' +
+
+    // --- TIME ---
+    '<div class="rules-content" id="rules-time">' +
+      '<h3>Day & Night Cycle</h3><p>1 real second = 2 game minutes. A full day is 24 game hours (12 real minutes).</p>' +
+      '<h3>Night Work</h3><p>Working between 00:00 and 06:00 is forbidden. If you try, you get caught and fined 12.5x your current job\'s pay, plus any money your slaves earned during the night.</p>' +
+      '<h3>Sleeping</h3><p>You can sleep once per game day. Sleeping passes 8 hours, costs 5% of your current balance as a tax, and reduces satiety by 25%. If you try to sleep twice in one day, you can force it for a 35% fine.</p>' +
+      '<h3>Calendar</h3><p>If bought in the shop, Fridays (and later Saturdays/Sundays) give a x2 or x3 multiplier to all earnings.</p>' +
+    '</div>' +
+
+    // --- ITEMS & HUNGER ---
+    '<div class="rules-content" id="rules-items">' +
+      '<h3>Satiety (Hunger)</h3><p>Drops by 1% every 12 seconds. Low satiety drastically increases your work cooldowns (up to 2.5x longer).</p>' +
+      '<h3>Apples & Golden Apples</h3><p>Eat regular apples in the Garden for +5% satiety. Golden Apples instantly restore 100%.</p>' +
+      '<h3>Herbal Elixir</h3><p>Halves all cooldowns for 5 game hours (2.5 real minutes).</p>' +
+      '<h3>Sustenance Potion</h3><p>Halves the speed at which you get hungry for 5 game hours (2.5 real minutes).</p>' +
+      '<h3>Insurance Potion</h3><p>For 5 game hours (2.5 real minutes), you lose NO money when you fail a minigame.</p>' +
+      '<h3>Night Totem</h3><p>One-time use. If you get caught working at night, the Totem shatters and absorbs the entire fine and lockout.</p>' +
+    '</div>' +
+
+    // --- ECONOMY ---
+    '<div class="rules-content" id="rules-economy">' +
+      '<h3>Premium & Jackpot</h3><ul>' +
+        '<li><b>Premium:</b> Every 10th click gives a massive multiplier.</li>' +
+        '<li><b>Jackpot:</b> Every 100th click gives an even bigger multiplier (up to x30).</li>' +
+      '</ul>' +
+      '<h3>Treasury (Market)</h3><p>Buy items when prices are low, sell when they are high. Prices fluctuate every minute. There is a PnL tracker to show your profits.</p>' +
+      '<h3>Treasury (Investments)</h3><p>Long-term bonds. They grow steadily over time, but only if you own them.</p>' +
+      '<h3>Distillery</h3><p>Buy must, wait for it to age, and sell it. Different stages give different multipliers (up to x10 for Exquisite). If you wait too long (over 10 mins), the wine spoils.</p>' +
+      '<h3>Offline Work</h3><p>Buy upgrades in the shop to let your slaves earn money while the game is closed (up to 30% efficiency).</p>' +
+    '</div>',
+
     'Close', null, closeModal, closeModal);
 }
 
@@ -222,7 +274,7 @@ function openPromoModal() {
     closeModal,
     'small-modal'
   );
-  
+
   setTimeout(() => {
     const inp = document.getElementById('promoInput');
     if (inp) {
@@ -238,7 +290,7 @@ async function submitPromoCode() {
   const input = document.getElementById('promoInput');
   const errorEl = document.getElementById('promoError');
   if (!input || !errorEl) return;
-  
+
   const code = input.value.trim();
   if (!code) {
     errorEl.textContent = 'Please enter a code.';
@@ -257,7 +309,7 @@ async function submitPromoCode() {
     const res = await fetch('codes.txt');
     if (!res.ok) throw new Error('Failed to load codes');
     const text = await res.text();
-    
+
     let found = null;
     const lines = text.split('\n');
     for (let line of lines) {
@@ -306,14 +358,45 @@ async function submitPromoCode() {
 
     game.usedPromos.push(code);
     saveGame();
-    
+
     input.disabled = true;
     document.getElementById('modalConfirm').disabled = true;
-    
+
     setTimeout(() => { closeModal(); }, 2000);
 
   } catch (e) {
     errorEl.textContent = 'Error loading codes. (Make sure codes.txt exists)';
     errorEl.style.color = '#b85a7a';
   }
+}
+
+// ============================================================
+// CONSUMABLES
+// ============================================================
+function eatGoldenApple(e) {
+  if (!game || game.goldenApples <= 0) { triggerError(e.target); return; }
+  game.goldenApples--;
+  game.satiety = 100;
+  saveGame();
+  updateHungerUI();
+}
+
+function drinkSustenance(e) {
+  if (!game || game.sustenancePotions <= 0) { triggerError(e.target); return; }
+  game.sustenancePotions--;
+  const now = Date.now();
+  game.sustenanceEndTime = (game.sustenanceEndTime > now ? game.sustenanceEndTime : now) + 150000;
+  saveGame();
+  updateHungerUI();
+  updateBonusText();
+}
+
+function drinkInsurance(e) {
+  if (!game || game.insurancePotions <= 0) { triggerError(e.target); return; }
+  game.insurancePotions--;
+  const now = Date.now();
+  game.insuranceEndTime = (game.insuranceEndTime > now ? game.insuranceEndTime : now) + 150000;
+  saveGame();
+  updateHungerUI();
+  updateBonusText();
 }

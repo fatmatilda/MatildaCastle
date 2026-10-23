@@ -183,15 +183,44 @@ function slaveCost(jobId) {
 
 function getSlaveCooldown(jobId) {
   if (jobId === 'boxes' || jobId === 'dishes') return baseCooldown(jobId);
-  return ({ plates: 10000, lawn: 15000, sword: 15000, armorer: 25000, writer: 30000, scientist: 60000 })[jobId] || 60000;
+  return ({ plates: 10000, lawn: 15000, sword: 15000, armorer: 25000, writer: 30000, scientist: 60000, chest: 60000 })[jobId] || 60000;
+}
+
+// ============================================================
+// DYNAMIC CONSUMABLE PRICES
+// ============================================================
+function getMaxBasePay() {
+  let max = 0;
+  JOBS.forEach(j => {
+    if (game.hiredJobs.includes(j.id)) max = Math.max(max, j.basePay);
+  });
+  return max > 0 ? max : DEFAULT_JOBS[0].basePay;
 }
 
 function getElixirPrice() {
-  let maxHire = 0;
-  JOBS.forEach(j => {
-    if (game.hiredJobs.includes(j.id)) maxHire = Math.max(maxHire, j.hireCost);
-  });
-  return Math.floor((maxHire || 20) * 0.5);
+  return Math.floor(getMaxBasePay() * 80);
+}
+
+function getGoldenApplePrice() {
+  return Math.floor(getMaxBasePay() * 5);
+}
+
+function getSustenancePotionPrice() {
+  return Math.floor(getMaxBasePay() * 3);
+}
+
+function getInsurancePotionPrice() {
+  return Math.floor(getMaxBasePay() * 10);
+}
+
+function getTotemPrice() {
+  return Math.floor(getMaxBasePay() * 200);
+}
+
+function getJackpotPrice() {
+  const lvl = game.jackpotLevel || 0;
+  if (lvl >= 5) return 0;
+  return JACKPOT_LEVELS[lvl];
 }
 
 function getBasketPrice() {
@@ -202,12 +231,15 @@ function getCalendarPrice() {
   return [15000, 80000, 500000][game.calendarLevel] || 0;
 }
 
+// ============================================================
+// PASSIVE INCOME
+// ============================================================
 function getSlaveIncomePerSecond() {
   let total = 0;
   JOBS.forEach(job => {
     if (game.slaves[job.id]) {
       const pay = currentPay(job.id);
-      const cd = getSlaveCooldown(job.id) / 1000; // переводим мс в секунды
+      const cd = getSlaveCooldown(job.id) / 1000;
       total += pay / cd;
     }
   });
@@ -217,7 +249,7 @@ function getSlaveIncomePerSecond() {
 function updatePassiveIncomeUI() {
   const el = document.getElementById('passiveIncomeDisplay');
   if (!el || !game) return;
-  
+
   if (game.hasPassiveIncomeMeter) {
     el.classList.remove('hidden');
     const income = getSlaveIncomePerSecond();

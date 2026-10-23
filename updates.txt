@@ -1,3 +1,14 @@
+v0.1.15 | October 23, 2026
+Added Jackpot upgrade (x5–x30 multiplier every 100th act)
+Added Golden Apple — instantly restores 100% satiety
+Added Sustenance Potion — halves hunger speed for 2.5 minutes
+Added Insurance Potion — blocks all minigame fines for 2.5 minutes
+Added Night Totem — absorbs one night penalty without loss
+All consumable prices now scale with your top job's base pay
+Insurance applies to all minigames: Sword, Lawn, Chest, Armorer, Writer, Scientist
+Fixed hunger freeze: Sustenance now correctly halves hunger speed
+Inventory now shows all consumables in Garden tab
+
 v0.1.14 | October 22, 2026
 Added Chest Locker job with a unique lockpicking minigame
 Added a jam progress bar and sound-like visual feedback for the lockpick

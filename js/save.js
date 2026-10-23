@@ -139,6 +139,7 @@ function normalizeState(s) {
     barrels: Array.isArray(s.barrels) ? s.barrels : [{ id: 1, startTime: 0, mustPrice: 0 }],
     offlineLevel: typeof s.offlineLevel === 'number' ? s.offlineLevel : 0,
     lastQuitTime: typeof s.lastQuitTime === 'number' ? s.lastQuitTime : Date.now(),
+    usedPromos: Array.isArray(s.usedPromos) ? s.usedPromos : [],
     timeMinutes: typeof s.timeMinutes === 'number' ? s.timeMinutes : 480,
     dayOfWeek: typeof s.dayOfWeek === 'number' ? s.dayOfWeek : 0,
     lastCurtainTime: typeof s.lastCurtainTime === 'number' ? s.lastCurtainTime : -120,

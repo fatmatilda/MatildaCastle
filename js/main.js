@@ -70,6 +70,7 @@ function startNewGame() {
     barrels: [{ id: 1, startTime: 0, mustPrice: 0 }],
     offlineLevel: 0,
     lastQuitTime: Date.now(),
+    usedPromos: [],
     timeMinutes: 480,
     dayOfWeek: 0,
     lastCurtainTime: -120,
@@ -136,7 +137,6 @@ async function launchChapter(n) {
   await loadPoems();
   await loadChemEquations();
 
-  // --- РАСЧЕТ ОФЛАЙН-ДОХОДА ---
   if (game.offlineLevel > 0 && game.lastQuitTime) {
     const now = Date.now();
     const diffSeconds = Math.max(0, Math.floor((now - game.lastQuitTime) / 1000));
@@ -168,7 +168,6 @@ async function launchChapter(n) {
       }
     }
   }
-  // ----------------------------
 
   hideAllScenes();
   document.getElementById('gameScreen').classList.remove('hidden');

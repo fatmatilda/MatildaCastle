@@ -62,7 +62,7 @@ function stopAllIntervals() {
 function showModal(title, text, confirmLabel, cancelLabel, onConfirm, onCancel, customClass = '') {
   const root = document.getElementById('modalRoot');
   const cancelHtml = cancelLabel ? '<button id="modalCancel">' + cancelLabel + '</button>' : '';
-  const isSpecial = ['Changelog', 'Statistics', 'Rules', 'Crafting Book', 'Outside', 'Slept'].includes(title) || title.startsWith('Update');
+  const isSpecial = ['Changelog', 'Statistics', 'Rules', 'Crafting Book', 'Outside', 'Slept', 'Promo Codes'].includes(title) || title.startsWith('Update');
   root.innerHTML =
     '<div class="modal-overlay" id="modalOverlay">' +
       '<div class="modal ' + customClass + '">' +
@@ -141,7 +141,7 @@ function checkVersionPopup() {
       };
       showModal(
         'Update ' + CURRENT_VERSION,
-        '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Added Distillery.<br>• Added butler auto-collect.<br>• Fixed number formatting.</div>',
+        '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Added Promo Codes.<br>• Fixed number formatting.</div>',
         'Okay', null, markSeen, markSeen
       );
     }, 800);
@@ -207,4 +207,116 @@ function backToMenu() {
   document.getElementById('cooldownFill').style.width = '0%';
   document.getElementById('cooldownText').textContent = '0.0s';
   showMenu();
+}
+
+// ============================================================
+// PROMO CODES
+// ============================================================
+function openPromoModal() {
+  showModal('Promo Codes',
+    `<div style="text-align:center; padding: 10px 0;">
+      <p>Enter your promo code below:</p>
+      <input type="text" id="promoInput" class="sci-input" style="width: 220px; font-size: 16px; margin-bottom: 10px; text-transform: none;" placeholder="Code">
+      <div id="promoError" style="color: #b85a7a; font-size: 13px; min-height: 20px; font-weight: bold;"></div>
+    </div>`,
+    'Activate',
+    'Cancel',
+    () => submitPromoCode(),
+    closeModal,
+    'small-modal'
+  );
+  
+  setTimeout(() => {
+    const inp = document.getElementById('promoInput');
+    if (inp) {
+      inp.focus();
+      inp.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') submitPromoCode();
+      });
+    }
+  }, 100);
+}
+
+async function submitPromoCode() {
+  const input = document.getElementById('promoInput');
+  const errorEl = document.getElementById('promoError');
+  if (!input || !errorEl) return;
+  
+  const code = input.value.trim();
+  if (!code) {
+    errorEl.textContent = 'Please enter a code.';
+    return;
+  }
+
+  if (game.usedPromos.includes(code)) {
+    errorEl.textContent = 'You have already used this code!';
+    return;
+  }
+
+  errorEl.textContent = 'Checking...';
+  errorEl.style.color = '#8a7fa5';
+
+  try {
+    const res = await fetch('codes.txt');
+    if (!res.ok) throw new Error('Failed to load codes');
+    const text = await res.text();
+    
+    let found = null;
+    const lines = text.split('\n');
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+      const parts = line.split('-');
+      if (parts.length < 2) continue;
+      const c = parts[0].trim();
+      if (c === code) {
+        const rewardPart = parts[1].trim(); // e.g., "m:5000"
+        const [type, amountStr] = rewardPart.split(':');
+        const amount = parseInt(amountStr, 10);
+        if (!isNaN(amount)) {
+          found = { type: type.trim(), amount };
+        }
+        break;
+      }
+    }
+
+    if (!found) {
+      errorEl.textContent = 'Invalid code.';
+      errorEl.style.color = '#b85a7a';
+      return;
+    }
+
+    if (found.type === 'm') {
+      game.money = round2(game.money + found.amount);
+      document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+      errorEl.textContent = `+ $${found.amount}`;
+      errorEl.style.color = '#a8c256';
+    } else if (found.type === 'a') {
+      game.apples += found.amount;
+      updateHungerUI();
+      errorEl.textContent = `+ ${found.amount} Apples`;
+      errorEl.style.color = '#a8c256';
+    } else if (found.type === 'e') {
+      game.elixirs += found.amount;
+      updateHungerUI();
+      errorEl.textContent = `+ ${found.amount} Elixirs`;
+      errorEl.style.color = '#a8c256';
+    } else {
+      errorEl.textContent = 'Unknown reward type.';
+      errorEl.style.color = '#b85a7a';
+      return;
+    }
+
+    game.usedPromos.push(code);
+    saveGame();
+    
+    input.disabled = true;
+    document.getElementById('modalConfirm').disabled = true;
+    
+    setTimeout(() => { closeModal(); }, 2000);
+
+  } catch (e) {
+    errorEl.textContent = 'Error loading codes. (Make sure codes.txt exists)';
+    errorEl.style.color = '#b85a7a';
+  }
 }

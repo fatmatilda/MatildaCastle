@@ -2,6 +2,9 @@ const SAVE_KEY = 'matilda_castle_save';
 const GLOBAL_STATS_KEY = 'matilda_global_stats';
 const CURRENT_VERSION = 'v0.1.11';
 
+const OFFLINE_CAPS_HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 44, 48];
+const OFFLINE_COSTS = [5000, 15000, 40000, 100000, 250000, 600000, 1200000, 2500000, 5000000, 9000000, 15000000, 25000000, 40000000, 65000000, 95000000, 130000000, 170000000, 200000000, 225000000, 250000000];
+
 const RESOURCES = [
   { id: 'FE', name: 'Iron' }, { id: 'WD', name: 'Wood' }, { id: 'LE', name: 'Leather' },
   { id: 'CL', name: 'Cloth' }, { id: 'AU', name: 'Gold' }, { id: 'DI', name: 'Diamond' },

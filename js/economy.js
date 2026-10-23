@@ -201,3 +201,15 @@ function getBasketPrice() {
 function getCalendarPrice() {
   return [15000, 80000, 500000][game.calendarLevel] || 0;
 }
+
+function getSlaveIncomePerSecond() {
+  let total = 0;
+  JOBS.forEach(job => {
+    if (game.slaves[job.id]) {
+      const pay = currentPay(job.id);
+      const cd = getSlaveCooldown(job.id) / 1000; // переводим мс в секунды
+      total += pay / cd;
+    }
+  });
+  return total;
+}

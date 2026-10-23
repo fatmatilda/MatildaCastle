@@ -68,6 +68,8 @@ function startNewGame() {
     hasButler2: false,
     butler2On: false,
     barrels: [{ id: 1, startTime: 0, mustPrice: 0 }],
+    offlineLevel: 0,
+    lastQuitTime: Date.now(),
     timeMinutes: 480,
     dayOfWeek: 0,
     lastCurtainTime: -120,
@@ -133,6 +135,40 @@ async function launchChapter(n) {
   await checkBalanceFile();
   await loadPoems();
   await loadChemEquations();
+
+  // --- РАСЧЕТ ОФЛАЙН-ДОХОДА ---
+  if (game.offlineLevel > 0 && game.lastQuitTime) {
+    const now = Date.now();
+    const diffSeconds = Math.max(0, Math.floor((now - game.lastQuitTime) / 1000));
+    
+    if (diffSeconds > 60) {
+      const maxSeconds = OFFLINE_CAPS_HOURS[game.offlineLevel - 1] * 3600;
+      const actualSeconds = Math.min(diffSeconds, maxSeconds);
+      
+      const incomePerSec = getSlaveIncomePerSecond();
+      const earned = round2(incomePerSec * actualSeconds * 0.5);
+      
+      if (earned > 0) {
+        game.money = round2(game.money + earned);
+        
+        const hoursAway = Math.floor(diffSeconds / 3600);
+        const minsAway = Math.floor((diffSeconds % 3600) / 60);
+        let timeText = '';
+        if (hoursAway > 0) timeText += `${hoursAway}h `;
+        if (minsAway > 0 || hoursAway === 0) timeText += `${minsAway}m`;
+        
+        setTimeout(() => {
+          showModal('Welcome Back!',
+            `<div style="font-size: 14px; color: #b8a3d0; margin-bottom: 12px;">You were away for <b>${timeText}</b>.</div>` +
+            `<div style="font-size: 14px; color: #b8a3d0; margin-bottom: 20px;">Your slaves worked at 50% efficiency and earned:</div>` +
+            `<div style="font-size: 32px; color: #a8c256; font-weight: bold; margin-bottom: 16px;">+${formatMoney(earned)}</div>` +
+            `<div style="font-size: 11px; color: #8a7fa5;">Max offline time: ${OFFLINE_CAPS_HOURS[game.offlineLevel - 1]} hours.</div>`,
+            'Collect', null, closeModal, closeModal, 'small-modal');
+        }, 500);
+      }
+    }
+  }
+  // ----------------------------
 
   hideAllScenes();
   document.getElementById('gameScreen').classList.remove('hidden');
@@ -405,5 +441,12 @@ setInterval(() => {
     writeGlobalStats(stats);
   }
 }, 1000);
+
+window.addEventListener('beforeunload', () => {
+  if (game) {
+    game.lastQuitTime = Date.now();
+    saveGame();
+  }
+});
 
 showMenu();

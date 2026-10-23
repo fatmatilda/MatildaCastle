@@ -13,6 +13,16 @@ function renderShop() {
   const lBtn = game.hasSlaveLicense ? 'OWNED' : 'Buy — ' + formatMoney(50);
   list.innerHTML += `<div class="shop-item"><div class="shop-info"><div class="shop-title">Slave License</div><div class="shop-desc">Unlocks slaves for fully upgraded jobs.</div><div class="shop-current">${game.hasSlaveLicense ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyLicense(event)" ${game.hasSlaveLicense || game.money < 50 ? 'disabled' : ''}>${lBtn}</button></div>`;
 
+  const oLvl = game.offlineLevel;
+  const oMax = 20;
+  const oCost = oLvl === 0 ? OFFLINE_COSTS[0] : (oLvl < oMax ? OFFLINE_COSTS[oLvl] : 0);
+  const oMaxed = oLvl >= oMax;
+  const oBtnText = oMaxed ? 'MAXED' : (oLvl === 0 ? 'Buy — ' + formatMoney(oCost) : 'Upgrade — ' + formatMoney(oCost));
+  const oCap = oLvl > 0 ? OFFLINE_CAPS_HOURS[oLvl - 1] : 0;
+  const oDesc = oLvl > 0 ? `Your slaves work offline at 50% efficiency. Limit: ${oCap} hours.` : 'Unlocks offline slave earnings (50% efficiency). Limit: 1 hour.';
+  
+  list.innerHTML += `<div class="shop-item"><div class="shop-info"><div class="shop-title">Offline Slave Work</div><div class="shop-desc">${oDesc}</div><div class="shop-current">Level ${oLvl} / ${oMax}</div></div><button class="shop-buy" onclick="buyOffline(event)" ${oMaxed || game.money < oCost ? 'disabled' : ''}>${oBtnText}</button></div>`;
+
   const cBtn = game.hasClock ? 'OWNED' : 'Buy — ' + formatMoney(1500);
   list.innerHTML += `<div class="shop-item"><div class="shop-info"><div class="shop-title">Pocket Clock</div><div class="shop-desc">Shows current game time in Work tab.</div><div class="shop-current">${game.hasClock ? 'Owned' : 'Not owned'}</div></div><button class="shop-buy" onclick="buyClock(event)" ${game.hasClock || game.money < 1500 ? 'disabled' : ''}>${cBtn}</button></div>`;
 
@@ -59,6 +69,19 @@ function buyLicense(e) {
   renderShop();
   updateAllBuyButtons();
   renderJobs();
+}
+
+function buyOffline(e) {
+  if (game.offlineLevel >= 20) return;
+  const cost = OFFLINE_COSTS[game.offlineLevel];
+  if (game.money < cost) { triggerError(e.target); return; }
+  
+  game.money = round2(game.money - cost);
+  game.offlineLevel++;
+  saveGame();
+  
+  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  renderShop();
 }
 
 function buyClock(e) {

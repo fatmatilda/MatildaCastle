@@ -213,3 +213,16 @@ function getSlaveIncomePerSecond() {
   });
   return total;
 }
+
+function updatePassiveIncomeUI() {
+  const el = document.getElementById('passiveIncomeDisplay');
+  if (!el || !game) return;
+  
+  if (game.hasPassiveIncomeMeter) {
+    el.classList.remove('hidden');
+    const income = getSlaveIncomePerSecond();
+    el.textContent = '+' + formatMoney(income) + '/s';
+  } else {
+    el.classList.add('hidden');
+  }
+}

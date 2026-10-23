@@ -17,7 +17,7 @@ function getBaseMustPrice() {
 
 function getWineStage(startTime) {
   if (!startTime) return null;
-  const elapsed = Math.floor((Date.now() - startTime) / 1000); // в секундах
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
   for (let stage of WINE_STAGES) {
     if (elapsed >= stage.min && elapsed < stage.max) {
       return { ...stage, elapsed };
@@ -29,7 +29,7 @@ function getWineStage(startTime) {
 function getWineSellPrice(barrel) {
   if (!barrel.startTime || !barrel.mustPrice) return 0;
   const stage = getWineStage(barrel.startTime);
-  const barrelBonus = 1 + (game.barrels.length - 1) * 0.06; // 6% за каждую бочку
+  const barrelBonus = 1 + (game.barrels.length - 1) * 0.06;
   return round2(barrel.mustPrice * stage.mult * barrelBonus);
 }
 
@@ -40,7 +40,6 @@ function formatWineTime(seconds) {
   return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-// --- Покупки ---
 function upgradeGrape(e) {
   if (game.grapeLevel >= 10) return;
   const cost = getGrapeCost();
@@ -97,13 +96,11 @@ function toggleButler2() {
   renderDistilleryUI();
 }
 
-// --- Взаимодействие с бочками ---
 function handleBarrelClick(index) {
   const barrel = game.barrels[index];
   if (!barrel) return;
 
   if (barrel.startTime === 0) {
-    // Покупаем сусло
     const price = getBaseMustPrice();
     if (game.money < price) {
       showModal('Not Enough Money', `You need ${formatMoney(price)} to buy must.`, 'Close', null, closeModal, closeModal, 'small-modal');
@@ -116,14 +113,13 @@ function handleBarrelClick(index) {
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
     renderDistilleryUI();
   } else {
-    // Продаем вино
     const sellPrice = getWineSellPrice(barrel);
     game.money = round2(game.money + sellPrice);
     const stage = getWineStage(barrel.startTime);
     
     showFloatingMoney(sellPrice, 1, false);
     if (stage.id === 'spoiled') {
-      triggerError(document.getElementById('distilleryGrid')); // визуально показываем, что убыток
+      triggerError(document.getElementById('distilleryGrid'));
     } else {
       triggerAnim(true);
     }
@@ -136,12 +132,10 @@ function handleBarrelClick(index) {
   }
 }
 
-// --- Тикер и автосбор ---
 function updateDistilleryTick() {
   if (!game || !game.hasDistillery) return;
   let changed = false;
 
-  // Бултер 1: собирает вино на стадии "Great"
   if (game.hasButler && game.butlerOn) {
     game.barrels.forEach((barrel) => {
       if (barrel.startTime > 0) {
@@ -158,7 +152,6 @@ function updateDistilleryTick() {
     });
   }
 
-  // Бултер 2: автоматически заливает сусло в пустые бочки
   if (game.hasButler2 && game.butler2On) {
     const price = getBaseMustPrice();
     game.barrels.forEach(barrel => {
@@ -181,11 +174,9 @@ function updateDistilleryTick() {
   }
 }
 
-// --- Отрисовка UI ---
 function renderDistilleryUI() {
   if (!game) return;
 
-  // --- Хедер (безопасное обновление) ---
   const elGrapeLevel = document.getElementById('grapeLevelText');
   if (elGrapeLevel) elGrapeLevel.textContent = game.grapeLevel;
 
@@ -252,7 +243,6 @@ function renderDistilleryUI() {
     }
   }
 
-  // --- Сетка бочек ---
   const grid = document.getElementById('distilleryGrid');
   if (!grid) return;
 

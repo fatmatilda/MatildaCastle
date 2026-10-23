@@ -111,6 +111,10 @@ function renderUpgradeInnerHTML(id, upg, stamMaxLv, earnMaxLv, plateMaxLv, precM
         const t = Math.max(50, 85 - upg.precision * 3);
         const nt = Math.max(50, 85 - (upg.precision + 1) * 3);
         effect = 'Fail: ' + t + '%' + (precMaxed ? '' : ' → ' + nt + '%');
+      } else if (id === 'chest') {
+        const currLimit = (3000 + upg.precision * 200) / 1000;
+        const nextLimit = (3000 + (upg.precision + 1) * 200) / 1000;
+        effect = 'Jam limit: ' + currLimit.toFixed(1) + 's → ' + nextLimit.toFixed(1) + 's';
       }
       html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Precision <span>Lv ${upg.precision} / ${precMaxLv}</span></div><div class="upg-effect">${effect}</div></div>${precMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-prec-btn-${id}" onclick="buyUpgrade('${id}','precision',event)" ${canP ? '' : 'disabled'}>${formatMoney(pcC)}</button>`}</div>`;
     }
@@ -135,7 +139,7 @@ function renderUpgradeInnerHTML(id, upg, stamMaxLv, earnMaxLv, plateMaxLv, precM
   } else if (game.hasSlaveLicense) {
     const sCost = slaveCost(id);
     const canSlave = allMaxed && game.money >= sCost;
-    const slaveHint = ['lawn', 'sword', 'armorer', 'writer', 'scientist'].includes(id) ? ' (Auto-succeeds)' : '';
+    const slaveHint = ['lawn', 'sword', 'armorer', 'writer', 'scientist', 'chest'].includes(id) ? ' (Auto-succeeds)' : '';
     html += `<div class="upg-item" style="border-top: 1px dashed #3a3350; padding-top: 8px; margin-top: 2px;"><div class="upg-info"><div class="upg-title">Slave</div><div class="upg-effect">Automates this job permanently${slaveHint}</div></div><button class="upg-buy" id="upg-slave-btn-${id}" ${canSlave ? '' : 'disabled'} onclick="buySlave('${id}',event)">${allMaxed ? 'Buy — ' + formatMoney(sCost) : 'Locked'}</button></div>`;
   }
 
@@ -154,21 +158,34 @@ function selectJob(id) {
   if (game.selectedJobId === id || game.slaves[id]) return;
   game.selectedJobId = id;
   saveGame();
+  
   if (id === 'plates') generatePlateLayout(currentPlates('plates'));
+  
   if (id === 'sword') {
     swordHits = 0;
     swordStrikes = 0;
     swordStartTime = 0;
     swordAnimating = false;
   }
+  
+  if (id === 'chest') {
+    chestActive = false;
+    chestJammed = false;
+    chestIsTurning = false;
+    if (chestRAF) cancelAnimationFrame(chestRAF);
+    window.onmouseup = null;
+  }
+
   if (id === 'armorer') {
     isCraftingActive = false;
     craftTableState.fill(null);
   }
   if (id === 'writer') isWritingActive = false;
   if (id === 'scientist') isResearchingActive = false;
+  
   isLawnDrawing = false;
   lawnStarted = false;
+  
   renderJobs();
   updateWorkButton();
   renderWorkArea();
@@ -245,6 +262,7 @@ function buySlave(id, e) {
   renderJobs();
   updateWorkButton();
   renderWorkArea();
+  updatePassiveIncomeUI();
 }
 
 function updateAllBuyButtons() {
@@ -337,7 +355,7 @@ function updateWorkButton() {
 
 function doWork() {
   if (!game || !game.selectedJobId || game.slaves[game.selectedJobId]) return;
-  if (['plates', 'lawn', 'sword', 'armorer', 'writer', 'scientist'].includes(game.selectedJobId)) return;
+  if (['plates', 'lawn', 'sword', 'chest', 'armorer', 'writer', 'scientist'].includes(game.selectedJobId)) return;
 
   const now = Date.now();
   if (game.workCooldownEnd && now < game.workCooldownEnd) return;
@@ -385,15 +403,20 @@ function startCooldownTicker() {
   }
   const lb = document.getElementById('lawnStartBtn');
   if (lb && !lb.classList.contains('btn-success') && !lb.classList.contains('btn-fail')) lb.classList.add('btn-cooldown');
+  const cb = document.getElementById('chestStartBtn');
+  if (cb && !cb.classList.contains('btn-success') && !cb.classList.contains('btn-fail')) {
+    cb.classList.add('btn-cooldown');
+    cb.disabled = true;
+  }
   const stb = document.getElementById('armorerStartBtn');
   if (stb && !stb.classList.contains('btn-success') && !stb.classList.contains('btn-fail')) {
     stb.classList.add('btn-cooldown');
     stb.disabled = true;
   }
-  const cb = document.getElementById('craftBtn');
-  if (cb && !cb.classList.contains('btn-success') && !cb.classList.contains('btn-fail')) {
-    cb.classList.add('btn-cooldown');
-    cb.disabled = true;
+  const craftB = document.getElementById('craftBtn');
+  if (craftB && !craftB.classList.contains('btn-success') && !craftB.classList.contains('btn-fail')) {
+    craftB.classList.add('btn-cooldown');
+    craftB.disabled = true;
   }
   const wb = document.getElementById('writerStartBtn');
   if (wb && !wb.classList.contains('btn-success') && !wb.classList.contains('btn-fail')) {
@@ -450,10 +473,11 @@ function startCooldownTicker() {
 }
 
 function resetWorkButtonsAfterCooldown() {
-  const ids = ['swordHitBtn', 'lawnStartBtn', 'armorerStartBtn', 'craftBtn', 'writerStartBtn', 'scientistStartBtn', 'scientistSubmitBtn'];
+  const ids = ['swordHitBtn', 'lawnStartBtn', 'chestStartBtn', 'armorerStartBtn', 'craftBtn', 'writerStartBtn', 'scientistStartBtn', 'scientistSubmitBtn'];
   const labels = {
     swordHitBtn: 'Strike!',
     lawnStartBtn: 'Start Mowing',
+    chestStartBtn: 'Start Picking',
     armorerStartBtn: 'Start Crafting',
     craftBtn: 'Craft!',
     writerStartBtn: 'Start Writing',
@@ -470,6 +494,7 @@ function resetWorkButtonsAfterCooldown() {
   renderArmorerUI();
   renderWriterUI();
   renderScientistUI();
+  if (game.selectedJobId === 'chest') drawChest();
 }
 
 function triggerNightPenalty(jobId) {
@@ -581,4 +606,5 @@ function updateFastUI() {
     }
   }
   if (game.slaves[game.selectedJobId]) updateSelectedCooldownUI();
+  updatePassiveIncomeUI();
 }

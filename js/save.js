@@ -61,6 +61,12 @@ function normalizeState(s) {
     });
   }
 
+  const hiredJobs = Array.isArray(s.hiredJobs) ? s.hiredJobs.slice() : [];
+  let selectedJobId = s.selectedJobId || null;
+  if (selectedJobId && !hiredJobs.includes(selectedJobId)) {
+    selectedJobId = hiredJobs.length > 0 ? hiredJobs[0] : null;
+  }
+
   let marketItems = s.marketItems;
   if (!marketItems) {
     marketItems = MARKET_ITEMS.map(i => ({
@@ -122,13 +128,14 @@ function normalizeState(s) {
   return {
     started: !!s.started,
     money: typeof s.money === 'number' ? s.money : 0,
-    hiredJobs: Array.isArray(s.hiredJobs) ? s.hiredJobs.slice() : [],
-    selectedJobId: s.selectedJobId || null,
+    hiredJobs: hiredJobs,
+    selectedJobId: selectedJobId,
     jobUpgrades: upgrades,
     slaves: s.slaves || {},
     slaveNextWork: s.slaveNextWork || {},
     hasSlaveLicense: !!s.hasSlaveLicense,
     hasClock: !!s.hasClock,
+    hasPassiveIncomeMeter: !!s.hasPassiveIncomeMeter,
     hasTreasury: !!s.hasTreasury,
     hasDistillery: !!s.hasDistillery,
     grapeLevel: typeof s.grapeLevel === 'number' ? s.grapeLevel : 1,

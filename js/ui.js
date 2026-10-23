@@ -141,7 +141,7 @@ function checkVersionPopup() {
       };
       showModal(
         'Update ' + CURRENT_VERSION,
-        '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Added Promo Codes.<br>• Fixed number formatting.</div>',
+        '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Added Income Meter.<br>• Shop items sorted by price.</div>',
         'Okay', null, markSeen, markSeen
       );
     }, 800);
@@ -209,9 +209,6 @@ function backToMenu() {
   showMenu();
 }
 
-// ============================================================
-// PROMO CODES
-// ============================================================
 function openPromoModal() {
   showModal('Promo Codes',
     `<div style="text-align:center; padding: 10px 0;">
@@ -270,7 +267,7 @@ async function submitPromoCode() {
       if (parts.length < 2) continue;
       const c = parts[0].trim();
       if (c === code) {
-        const rewardPart = parts[1].trim(); // e.g., "m:5000"
+        const rewardPart = parts[1].trim();
         const [type, amountStr] = rewardPart.split(':');
         const amount = parseInt(amountStr, 10);
         if (!isNaN(amount)) {

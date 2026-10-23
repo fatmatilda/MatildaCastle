@@ -60,6 +60,7 @@ function startNewGame() {
     slaveNextWork: {},
     hasSlaveLicense: false,
     hasClock: false,
+    hasPassiveIncomeMeter: false,
     hasTreasury: false,
     hasDistillery: false,
     grapeLevel: 1,
@@ -133,40 +134,49 @@ async function launchChapter(n) {
   game = normalizeState(getSave()[n] || {});
   JOBS = JSON.parse(JSON.stringify(DEFAULT_JOBS));
 
-  await checkBalanceFile();
-  await loadPoems();
-  await loadChemEquations();
+  let offlineEarned = 0;
+  let offlineTimeText = '';
 
   if (game.offlineLevel > 0 && game.lastQuitTime) {
     const now = Date.now();
     const diffSeconds = Math.max(0, Math.floor((now - game.lastQuitTime) / 1000));
     
-    if (diffSeconds > 60) {
+    if (diffSeconds >= 30) {
       const maxSeconds = OFFLINE_CAPS_HOURS[game.offlineLevel - 1] * 3600;
       const actualSeconds = Math.min(diffSeconds, maxSeconds);
       
       const incomePerSec = getSlaveIncomePerSecond();
-      const earned = round2(incomePerSec * actualSeconds * 0.5);
+      offlineEarned = round2(incomePerSec * actualSeconds * 0.3);
       
-      if (earned > 0) {
-        game.money = round2(game.money + earned);
+      if (offlineEarned > 0) {
+        game.money = round2(game.money + offlineEarned);
         
         const hoursAway = Math.floor(diffSeconds / 3600);
         const minsAway = Math.floor((diffSeconds % 3600) / 60);
         let timeText = '';
         if (hoursAway > 0) timeText += `${hoursAway}h `;
         if (minsAway > 0 || hoursAway === 0) timeText += `${minsAway}m`;
-        
-        setTimeout(() => {
-          showModal('Welcome Back!',
-            `<div style="font-size: 14px; color: #b8a3d0; margin-bottom: 12px;">You were away for <b>${timeText}</b>.</div>` +
-            `<div style="font-size: 14px; color: #b8a3d0; margin-bottom: 20px;">Your slaves worked at 50% efficiency and earned:</div>` +
-            `<div style="font-size: 32px; color: #a8c256; font-weight: bold; margin-bottom: 16px;">+${formatMoney(earned)}</div>` +
-            `<div style="font-size: 11px; color: #8a7fa5;">Max offline time: ${OFFLINE_CAPS_HOURS[game.offlineLevel - 1]} hours.</div>`,
-            'Collect', null, closeModal, closeModal, 'small-modal');
-        }, 500);
+        offlineTimeText = timeText;
       }
     }
+  }
+
+  await checkBalanceFile();
+  await loadPoems();
+  await loadChemEquations();
+
+  if (offlineEarned > 0) {
+    setTimeout(() => {
+      showModal('Welcome Back!',
+        `<div style="font-size: 14px; color: #b8a3d0; margin-bottom: 12px;">You were away for <b>${offlineTimeText}</b>.</div>` +
+        `<div style="font-size: 14px; color: #b8a3d0; margin-bottom: 20px;">Your slaves worked at 30% efficiency and earned:</div>` +
+        `<div style="font-size: 32px; color: #a8c256; font-weight: bold; margin-bottom: 16px;">+${formatMoney(offlineEarned)}</div>` +
+        `<div style="font-size: 11px; color: #8a7fa5;">Max offline time: ${OFFLINE_CAPS_HOURS[game.offlineLevel - 1]} hours.</div>`,
+        'Collect', null, 
+        () => { closeModal(); saveGame(); }, 
+        () => { closeModal(); saveGame(); }, 
+        'small-modal');
+    }, 500);
   }
 
   hideAllScenes();
@@ -180,6 +190,7 @@ async function launchChapter(n) {
   updateClockUI();
   updateHungerUI();
   renderCalendar();
+  updatePassiveIncomeUI();
 
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) {
     startCooldownTicker();
@@ -262,15 +273,19 @@ function renderWorkArea() {
   const isPlate = game.selectedJobId === 'plates' && !game.slaves['plates'];
   const isLawn = game.selectedJobId === 'lawn' && !game.slaves['lawn'];
   const isSword = game.selectedJobId === 'sword' && !game.slaves['sword'];
+  const isChest = game.selectedJobId === 'chest' && !game.slaves['chest'];
   const isArmorer = game.selectedJobId === 'armorer' && !game.slaves['armorer'];
   const isWriter = game.selectedJobId === 'writer' && !game.slaves['writer'];
   const isScientist = game.selectedJobId === 'scientist' && !game.slaves['scientist'];
 
   document.getElementById('workBtnContainer').classList.toggle('hidden',
-    isPlate || isLawn || isSword || isArmorer || isWriter || isScientist);
+    isPlate || isLawn || isSword || isChest || isArmorer || isWriter || isScientist);
   document.getElementById('plateContainer').classList.toggle('hidden', !isPlate);
   document.getElementById('lawnContainer').classList.toggle('hidden', !isLawn);
   document.getElementById('swordContainer').classList.toggle('hidden', !isSword);
+  const chestEl = document.getElementById('chestContainer');
+  if (chestEl) chestEl.classList.toggle('hidden', !isChest);
+  
   document.getElementById('armorerContainer').classList.toggle('hidden', !isArmorer);
   document.getElementById('writerContainer').classList.toggle('hidden', !isWriter);
   document.getElementById('scientistContainer').classList.toggle('hidden', !isScientist);
@@ -310,6 +325,21 @@ function renderWorkArea() {
     }
     generateLawnCurve();
     setupLawnCanvas();
+  } else if (isChest) {
+    const cb = document.getElementById('chestStartBtn');
+    if (cb) {
+      if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) {
+        cb.disabled = true;
+        cb.classList.add('btn-cooldown');
+        cb.classList.remove('btn-success', 'btn-fail');
+        cb.textContent = 'Cooldown';
+      } else {
+        cb.disabled = false;
+        cb.classList.remove('btn-cooldown', 'btn-success', 'btn-fail');
+        cb.textContent = 'Start Picking';
+      }
+    }
+    drawChest();
   } else if (isArmorer) {
     renderArmorerUI();
   } else if (isWriter) {

@@ -2516,3 +2516,73 @@ canvas.tres-chart {
   background: #5a4a6a;
   border-radius: 4px;
 }
+
+.passive-income {
+  font-size: 12px;
+  color: #a8c256;
+  margin-left: 10px;
+  font-weight: bold;
+  font-style: italic;
+}
+
+/* ============================================================
+   MINIGAME: CHEST LOCKER
+   ============================================================ */
+.chest-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.chest-lock-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column; /* Ставим элементы друг под другом */
+  align-items: center;
+  margin-top: 15px;
+  margin-bottom: 20px; /* Отступ снизу, чтобы текст не прилипал */
+  gap: 15px; /* Отступ между колесом и полоской */
+}
+
+#chestCanvas {
+  background: rgba(10, 5, 20, 0.8);
+  border: 2px solid #3a3350;
+  border-radius: 50%;
+  cursor: crosshair;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 20px rgba(180, 140, 255, 0.1);
+}
+
+.chest-jam-container {
+  width: 200px;
+  height: 8px;
+  background: #1a1228;
+  border: 1px solid #b85a7a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.chest-jam-fill {
+  height: 100%;
+  width: 0%;
+  background: #b85a7a;
+  transition: width 0.05s linear;
+}
+
+.chest-jam-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.chest-jam-text {
+  font-size: 12px;
+  color: #b85a7a;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}

@@ -1,9 +1,6 @@
 const SAVE_KEY = 'matilda_castle_save';
 const GLOBAL_STATS_KEY = 'matilda_global_stats';
-const CURRENT_VERSION = 'v0.1.11';
-
-const OFFLINE_CAPS_HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 44, 48];
-const OFFLINE_COSTS = [5000, 15000, 40000, 100000, 250000, 600000, 1200000, 2500000, 5000000, 9000000, 15000000, 25000000, 40000000, 65000000, 95000000, 130000000, 170000000, 200000000, 225000000, 250000000];
+const CURRENT_VERSION = 'v0.1.14';
 
 const RESOURCES = [
   { id: 'FE', name: 'Iron' }, { id: 'WD', name: 'Wood' }, { id: 'LE', name: 'Leather' },
@@ -33,12 +30,13 @@ const RECIPES = [
 const DEFAULT_JOBS = [
   { id: 'boxes', name: 'Carry Boxes', desc: 'A simple job. Haul crates from dawn till dusk.', hireCost: 0, basePay: 0.50, baseCd: 5000, maxPay: 1.25, maxCd: 3000, payStep: 0.05, cdStep: 200, stamBase: 1, stamMult: 1.15, earnBase: 0.5, earnMult: 1.15 },
   { id: 'dishes', name: 'Wash Dishes', desc: 'Scrub pots in the scullery. Pays better, but takes longer.', hireCost: 20, basePay: 5, baseCd: 10000, maxPay: 8, maxCd: 5000, payStep: 0.25, cdStep: 250, stamBase: 3, stamMult: 1.18, earnBase: 2, earnMult: 1.18 },
-  { id: 'plates', name: 'Plate Sorting', desc: 'Arrange plates in order. One mistake resets the sequence.', hireCost: 300, basePay: 16, baseCd: 8000, maxPay: 40, maxCd: 4000, payStep: 1.6, cdStep: 200, stamBase: 50, stamMult: 1.18, earnBase: 40, earnMult: 1.18, basePlates: 16, minPlates: 10, plateStep: 1, plateBase: 100, plateMult: 1.18 },
-  { id: 'lawn', name: 'Lawn Mowing', desc: 'Trace the line perfectly to cut the grass.', hireCost: 3500, basePay: 150, baseCd: 10000, maxPay: 300, maxCd: 5000, payStep: 15, cdStep: 250, stamBase: 200, stamMult: 1.18, earnBase: 500, earnMult: 1.18, precBase: 1000, precMult: 1.18, maxPrecLv: 10 },
-  { id: 'sword', name: 'Sword Forging', desc: 'Hit the power meter as close to 100 as possible.', hireCost: 25000, basePay: 1500, baseCd: 15000, maxPay: 5000, maxCd: 10000, payStep: 350, cdStep: 250, stamBase: 3000, stamMult: 1.18, earnBase: 5000, earnMult: 1.18, precBase: 10000, precMult: 1.18, maxPrecLv: 10, baseThreshold: 465, minThreshold: 400 },
-  { id: 'armorer', name: 'Armor Crafter', desc: 'Craft armor by looking at the recipe book.', hireCost: 300000, basePay: 20000, baseCd: 25000, maxPay: 125000, maxCd: 25000, payStep: 5000, cdStep: 0, stamBase: 100000, stamMult: 1.18, earnBase: 20000, earnMult: 1.18 },
-  { id: 'writer', name: 'Writer', desc: 'Type the poem without making a mistake.', hireCost: 4000000, basePay: 300000, baseCd: 30000, maxPay: 900000, maxCd: 30000, payStep: 30000, cdStep: 0, stamBase: 1000000, stamMult: 1.18, earnBase: 50000, earnMult: 1.18 },
-  { id: 'scientist', name: 'Scientist', desc: 'Solve complex problems and equations.', hireCost: 30000000, basePay: 2100000, baseCd: 60000, maxPay: 12000000, maxCd: 60000, payStep: 2000000, cdStep: 0, stamBase: 10000000, stamMult: 1, earnBase: 10000000, earnMult: 1 }
+  { id: 'plates', name: 'Plate Sorting', desc: 'Arrange plates in order. One mistake resets the sequence.', hireCost: 300, basePay: 16, baseCd: 12000, maxPay: 40, maxCd: 6000, payStep: 1.6, cdStep: 300, stamBase: 50, stamMult: 1.18, earnBase: 40, earnMult: 1.18, basePlates: 16, minPlates: 10, plateStep: 1, plateBase: 100, plateMult: 1.18 },
+  { id: 'lawn', name: 'Lawn Mowing', desc: 'Trace the line perfectly to cut the grass.', hireCost: 3500, basePay: 150, baseCd: 15000, maxPay: 300, maxCd: 8000, payStep: 15, cdStep: 350, stamBase: 200, stamMult: 1.18, earnBase: 500, earnMult: 1.18, precBase: 1000, precMult: 1.18, maxPrecLv: 10 },
+  { id: 'sword', name: 'Sword Forging', desc: 'Hit the power meter as close to 100 as possible.', hireCost: 25000, basePay: 1500, baseCd: 20000, maxPay: 5000, maxCd: 10000, payStep: 350, cdStep: 500, stamBase: 3000, stamMult: 1.18, earnBase: 5000, earnMult: 1.18, precBase: 10000, precMult: 1.18, maxPrecLv: 10, baseThreshold: 465, minThreshold: 400 },
+  { id: 'armorer', name: 'Armor Crafter', desc: 'Craft armor by looking at the recipe book.', hireCost: 300000, basePay: 20000, baseCd: 30000, maxPay: 125000, maxCd: 15000, payStep: 5000, cdStep: 1500, stamBase: 100000, stamMult: 1.18, earnBase: 20000, earnMult: 1.18 },
+  { id: 'writer', name: 'Writer', desc: 'Type the poem without making a mistake.', hireCost: 4000000, basePay: 300000, baseCd: 45000, maxPay: 900000, maxCd: 25000, payStep: 30000, cdStep: 2000, stamBase: 1000000, stamMult: 1.18, earnBase: 50000, earnMult: 1.18 },
+  { id: 'scientist', name: 'Scientist', desc: 'Solve complex problems and equations.', hireCost: 30000000, basePay: 2100000, baseCd: 60000, maxPay: 12000000, maxCd: 40000, payStep: 2000000, cdStep: 2000, stamBase: 10000000, stamMult: 1.0, earnBase: 10000000, earnMult: 1.0 },
+  { id: 'chest', name: 'Chest Locker', desc: 'Pick Matilda\'s locks. Be careful not to break the pick.', hireCost: 150000000, basePay: 10000000, baseCd: 90000, maxPay: 100000000, maxCd: 60000, payStep: 5000000, cdStep: 3000, stamBase: 5000000, stamMult: 1.3, earnBase: 10000000, earnMult: 1.15, precBase: 20000000, precMult: 1.3, maxPrecLv: 10 }
 ];
 
 const MARKET_ITEMS = [
@@ -81,6 +79,9 @@ const MAX_BARRELS = 20;
 const BUTLER_COST = 25000000;
 const BUTLER2_COST = 75000000;
 const DISTILLERY_COST = 5000000;
+
+const OFFLINE_CAPS_HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 44, 48];
+const OFFLINE_COSTS = [5000, 15000, 40000, 100000, 250000, 600000, 1200000, 2500000, 5000000, 9000000, 15000000, 25000000, 40000000, 65000000, 95000000, 130000000, 170000000, 200000000, 225000000, 250000000];
 
 let CHEM_EQUATIONS = [];
 let poems = [];
@@ -141,3 +142,13 @@ let sciTasks = [];
 let sciCurrentTaskIndex = 0;
 
 let openTresItemId = null;
+
+let chestActive = false;
+let chestAngle = 0;
+let chestTarget = 0;
+let chestIsTurning = false;
+let chestJammed = false;
+let chestJamStartTime = 0;
+let chestJamLimit = 3000;
+let chestRAF = null;
+let chestLastFrame = 0;

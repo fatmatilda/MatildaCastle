@@ -1,4 +1,9 @@
-// ==== APPLES ====
+// Глобальные переменные для взломщика
+let chestAttemptRot = 0;
+
+// ============================================================
+// MINIGAME: APPLES
+// ============================================================
 function animateAppleRAF(ts) {
   if (!appleGameActive) { appleRAF = null; return; }
   if (!appleStartTime) appleStartTime = ts;
@@ -85,7 +90,9 @@ function drinkElixir(e) {
   updateBonusText();
 }
 
-// ==== SWORD ====
+// ============================================================
+// MINIGAME: SWORD
+// ============================================================
 function startSwordMeter() {
   if (swordRAF) return;
   swordRAF = requestAnimationFrame(animateSwordMeterRAF);
@@ -96,7 +103,7 @@ function animateSwordMeterRAF() {
   if (!swordStartTime) swordStartTime = performance.now();
   if (!swordAnimating) {
     const elapsed = performance.now() - swordStartTime;
-    const cycle = (elapsed * 0.39) % 200;
+    const cycle = (elapsed * 0.15) % 200;
     swordMeterVal = cycle <= 100 ? cycle : 200 - cycle;
     if (game.selectedJobId === 'sword' && !game.slaves['sword']) {
       const fill = document.getElementById('swordMeterFill');
@@ -109,7 +116,7 @@ function animateSwordMeterRAF() {
 function getSwordPowerAtClick() {
   if (!swordStartTime) return 0;
   const elapsed = performance.now() - swordStartTime;
-  const cycle = (elapsed * 0.39) % 200;
+  const cycle = (elapsed * 0.15) % 200;
   return Math.floor(cycle <= 100 ? cycle : 200 - cycle);
 }
 
@@ -195,7 +202,9 @@ function hitSword() {
   saveGame();
 }
 
-// ==== LAWN ====
+// ============================================================
+// MINIGAME: LAWN
+// ============================================================
 function generateLawnCurve() {
   lawnPoints = [];
   const angle = Math.random() * Math.PI * 2;
@@ -364,7 +373,9 @@ function finishLawnJob(success) {
 
 function failLawnJob() { finishLawnJob(false); }
 
-// ==== PLATES ====
+// ============================================================
+// MINIGAME: PLATES
+// ============================================================
 function generatePlateLayout(count) {
   const arr = Array.from({ length: count }, (_, i) => i + 1);
   for (let i = arr.length - 1; i > 0; i--) {
@@ -448,7 +459,312 @@ function finishPlateJob() {
   triggerAnim(true);
 }
 
-// ==== ARMORER ====
+// ============================================================
+// MINIGAME: CHEST LOCKER (Dying Light Style)
+// ============================================================
+function startChestGame() {
+  if (!game || game.selectedJobId !== 'chest' || game.slaves['chest']) return;
+  const btn = document.getElementById('chestStartBtn');
+  if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(btn); return; }
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('chest'); return; }
+
+  chestActive = true;
+  chestIsTurning = false;
+  chestJammed = false;
+  chestTotalJamTime = 0;
+  chestAttemptRot = 0;
+  chestAngle = 0;
+  chestTarget = Math.floor(Math.random() * 360);
+  chestLastFrame = 0;
+  chestMaxRot = 0;
+
+  btn.disabled = true;
+  btn.classList.add('btn-cooldown');
+  btn.textContent = 'Picking...';
+  
+  document.getElementById('chestJamFill').style.width = '0%';
+  document.getElementById('chestJamText').textContent = 'Lockpick break: 0%';
+  document.getElementById('chestStatusText').textContent = 'Move mouse to rotate, hold LMB to pick.';
+
+  const canvas = document.getElementById('chestCanvas');
+  canvas.style.cursor = 'crosshair';
+
+  canvas.onmousemove = (e) => {
+    if (!chestActive || chestIsTurning || chestJammed) return;
+    const rect = canvas.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    let angle = Math.atan2(y - cy, x - cx) * (180 / Math.PI);
+    if (angle < 0) angle += 360;
+    chestAngle = angle;
+    drawChest();
+  };
+
+  canvas.onmousedown = (e) => {
+    if (!chestActive || chestJammed) return;
+    if (e.button !== 0) return;
+    
+    chestIsTurning = true;
+    chestAttemptRot = 0;
+    
+    let dist = Math.abs(chestAngle - chestTarget);
+    if (dist > 180) dist = 360 - dist;
+    
+    if (dist <= 5) {
+      chestMaxRot = 360;
+    } else {
+      chestMaxRot = Math.max(0, (180 - dist) * 2);
+    }
+
+    if (!chestLastFrame) chestLastFrame = performance.now();
+    if (chestRAF) cancelAnimationFrame(chestRAF);
+    chestRAF = requestAnimationFrame(animateChestLock);
+  };
+
+  window.onmouseup = () => {
+    if (!chestActive) return;
+    
+    if (chestJammed) {
+      chestTotalJamTime += (Date.now() - chestJamStartTime);
+      
+      if (chestTotalJamTime >= 3000) {
+         chestActive = false;
+         chestJammed = false;
+         if (chestRAF) cancelAnimationFrame(chestRAF);
+         chestRAF = null;
+         window.onmouseup = null;
+         finishChestJob(false);
+         return;
+      }
+
+      chestJammed = false;
+      chestIsTurning = false;
+      document.getElementById('chestStatusText').textContent = 'Jam reset. Try again.';
+    } else {
+      chestIsTurning = false;
+    }
+    
+    chestAttemptRot = 0; 
+    drawChest();
+  };
+
+  drawChest();
+}
+
+function animateChestLock(ts) {
+  if (!chestActive) { chestRAF = null; return; }
+  if (!chestLastFrame) chestLastFrame = ts;
+  const dt = Math.min(0.1, (ts - chestLastFrame) / 1000);
+  chestLastFrame = ts;
+
+  if (chestIsTurning && !chestJammed) {
+    const rotAmount = 180 * dt;
+    chestAngle += rotAmount;
+    if (chestAngle >= 360) chestAngle -= 360;
+
+    chestAttemptRot += rotAmount;
+
+    if (chestAttemptRot >= 360) {
+      chestAttemptRot = 360;
+      drawChest();
+      
+      chestActive = false;
+      if (chestRAF) cancelAnimationFrame(chestRAF);
+      chestRAF = null;
+      window.onmouseup = null;
+      
+      finishChestJob(true);
+      return;
+    }
+
+    if (chestAttemptRot >= chestMaxRot) {
+      chestJammed = true;
+      chestIsTurning = false;
+      chestJamStartTime = Date.now();
+      document.getElementById('chestStatusText').textContent = 'JAMMED! Release LMB to reset!';
+      triggerError(document.getElementById('chestCanvas'));
+      startJamTimer();
+    }
+
+    drawChest();
+  }
+
+  if (chestIsTurning || chestJammed) {
+    chestRAF = requestAnimationFrame(animateChestLock);
+  } else {
+    chestRAF = null;
+  }
+}
+
+function startJamTimer() {
+  const startTime = Date.now();
+  const fill = document.getElementById('chestJamFill');
+  const text = document.getElementById('chestJamText');
+
+  const checkJam = () => {
+    if (!chestJammed || !chestActive) return;
+    const elapsed = Date.now() - startTime;
+    const totalElapsed = chestTotalJamTime + elapsed;
+    const limit = 3000;
+    const pct = Math.min(100, Math.floor((totalElapsed / limit) * 100));
+    
+    fill.style.width = pct + '%';
+    text.textContent = 'Lockpick break: ' + pct + '%';
+
+    if (totalElapsed >= limit) {
+      chestActive = false;
+      chestJammed = false;
+      if (chestRAF) cancelAnimationFrame(chestRAF);
+      chestRAF = null;
+      window.onmouseup = null;
+      finishChestJob(false);
+      return;
+    }
+    if (chestJammed) requestAnimationFrame(checkJam);
+  };
+  requestAnimationFrame(checkJam);
+}
+
+function drawChest() {
+  const canvas = document.getElementById('chestCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = 300, h = 300;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.clearRect(0, 0, w, h);
+
+  ctx.beginPath();
+  ctx.arc(150, 150, 100, 0, Math.PI * 2);
+  ctx.fillStyle = '#1a1228';
+  ctx.fill();
+  ctx.strokeStyle = '#3a3350';
+  ctx.lineWidth = 8;
+  ctx.stroke();
+
+  if (chestActive && chestAttemptRot > 0) {
+    let startRad = -Math.PI / 2;
+    let endRad = startRad + (chestAttemptRot * Math.PI / 180);
+    
+    // Убираем зазор в конце дуги, перекрывая её на 0.02 радиана
+    if (chestAttemptRot >= 360) {
+      endRad = startRad + Math.PI * 2 + 0.02;
+    }
+
+    ctx.beginPath();
+    ctx.arc(150, 150, 90, startRad, endRad, false);
+    ctx.strokeStyle = chestJammed ? '#b85a7a' : '#d4b8ff';
+    ctx.lineWidth = 12;
+    ctx.lineCap = 'butt'; 
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(140, 150);
+  ctx.lineTo(160, 150);
+  ctx.lineTo(160, 190);
+  ctx.arc(150, 190, 10, 0, Math.PI);
+  ctx.closePath();
+  ctx.fillStyle = '#000';
+  ctx.fill();
+
+  const rad = chestAngle * Math.PI / 180;
+  ctx.beginPath();
+  ctx.moveTo(150, 150);
+  ctx.lineTo(150 + Math.cos(rad) * 80, 150 + Math.sin(rad) * 80);
+  ctx.strokeStyle = chestJammed ? '#b85a7a' : '#f3e6c8';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(150, 150, 6, 0, Math.PI * 2);
+  ctx.fillStyle = chestJammed ? '#b85a7a' : '#f3e6c8';
+  ctx.fill();
+}
+
+function finishChestJob(success) {
+  chestActive = false;
+  if (chestRAF) cancelAnimationFrame(chestRAF);
+  window.onmouseup = null;
+
+  const btn = document.getElementById('chestStartBtn');
+  btn.disabled = true;
+
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) {
+    triggerNightPenalty('chest');
+    document.getElementById('chestStatusText').textContent = 'Caught by Matilda!';
+    return;
+  }
+
+  if (success) {
+    game.workClicks++;
+    btn.classList.add('btn-success');
+    btn.textContent = 'Success!';
+    document.getElementById('chestStatusText').textContent = 'Unlocked!';
+    
+    let pay = currentPay('chest');
+    const mult = getActionMultiplier();
+    pay = round2(pay * mult);
+
+    game.money = round2(game.money + pay);
+    const cd = applyCooldownMult(baseCooldown('chest'));
+    game.workCooldownEnd = Date.now() + cd;
+    game.lastCooldownDuration = cd;
+    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    showFloatingMoney(pay, mult, false);
+
+    document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+    updateAllBuyButtons();
+    updateBonusText();
+    triggerAnim(true);
+  } else {
+    btn.classList.add('btn-fail');
+    btn.textContent = 'Failed!';
+    document.getElementById('chestStatusText').textContent = 'Pick broke!';
+    
+    const pen = round2(currentPay('chest') * 2);
+    game.money = round2(Math.max(0, game.money - pen));
+    const cd = applyCooldownMult(60000); 
+    game.workCooldownEnd = Date.now() + cd;
+    game.lastCooldownDuration = cd;
+    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    showFloatingPenalty(pen);
+
+    document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+    updateAllBuyButtons();
+    updateBonusText();
+    triggerAnim(false);
+
+    setTimeout(() => {
+      showModal('Failed!', 'The lockpick broke! Matilda fined you ' + formatMoney(pen) + '.', 'Accept', null, closeModal, closeModal, 'small-modal');
+    }, 600);
+  }
+
+  saveGame();
+  updateWorkButton();
+  startCooldownTicker();
+  
+  setTimeout(() => {
+    document.getElementById('chestStatusText').textContent = 'Move mouse to rotate, hold LMB to pick.';
+    if (btn.classList.contains('btn-cooldown')) btn.textContent = 'Cooldown';
+    // Сбрасываем полоску только когда кулдаун уже пошел
+    chestAttemptRot = 0;
+    document.getElementById('chestJamFill').style.width = '0%';
+    document.getElementById('chestJamText').textContent = 'Lockpick break: 0%';
+    drawChest();
+  }, 2500);
+}
+
+// ============================================================
+// MINIGAME: ARMORER
+// ============================================================
 function startArmorerWork() {
   if (!game || game.selectedJobId !== 'armorer') return;
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) {
@@ -639,7 +955,9 @@ function updateBookPageContent() {
 function nextBookPage() { if (currentBookPage < RECIPES.length - 1) { currentBookPage++; updateBookPageContent(); } }
 function prevBookPage() { if (currentBookPage > 0) { currentBookPage--; updateBookPageContent(); } }
 
-// ==== WRITER ====
+// ============================================================
+// MINIGAME: WRITER
+// ============================================================
 function startWriterWork() {
   if (!game || game.selectedJobId !== 'writer') return;
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(document.getElementById('writerStartBtn')); return; }
@@ -783,7 +1101,9 @@ function finishWriterJob(success) {
   saveGame();
 }
 
-// ==== SCIENTIST ====
+// ============================================================
+// MINIGAME: SCIENTIST
+// ============================================================
 function startScientistWork() {
   if (!game || game.selectedJobId !== 'scientist') return;
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(document.getElementById('scientistStartBtn')); return; }

@@ -154,4 +154,4 @@ let chestJammed = false;
 let chestJamStartTime = 0;
 let chestJamLimit = 3000;
 let chestRAF = null;
-let chestLastFrame = 0;
+let chestLastFrame = 0; 

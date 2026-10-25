@@ -187,34 +187,37 @@ function getSlaveCooldown(jobId) {
 }
 
 // ============================================================
-// DYNAMIC CONSUMABLE PRICES
+// DYNAMIC CONSUMABLE PRICES (Variant B: Depends on Current Pay)
 // ============================================================
-function getMaxBasePay() {
+function getHighestCurrentPay() {
   let max = 0;
+  if (!game || !game.hiredJobs) return DEFAULT_JOBS[0].basePay;
   JOBS.forEach(j => {
-    if (game.hiredJobs.includes(j.id)) max = Math.max(max, j.basePay);
+    if (game.hiredJobs.includes(j.id)) {
+      max = Math.max(max, currentPay(j.id));
+    }
   });
   return max > 0 ? max : DEFAULT_JOBS[0].basePay;
 }
 
-function getElixirPrice() {
-  return Math.floor(getMaxBasePay() * 80);
+function getSustenancePotionPrice() {
+  return Math.floor(getHighestCurrentPay() * 3);
 }
 
 function getGoldenApplePrice() {
-  return Math.floor(getMaxBasePay() * 5);
+  return Math.floor(getHighestCurrentPay() * 5);
 }
 
-function getSustenancePotionPrice() {
-  return Math.floor(getMaxBasePay() * 3);
+function getElixirPrice() {
+  return Math.floor(getHighestCurrentPay() * 7.5);
 }
 
 function getInsurancePotionPrice() {
-  return Math.floor(getMaxBasePay() * 10);
+  return Math.floor(getHighestCurrentPay() * 12.5);
 }
 
 function getTotemPrice() {
-  return Math.floor(getMaxBasePay() * 200);
+  return Math.floor(getHighestCurrentPay() * 25);
 }
 
 function getJackpotPrice() {

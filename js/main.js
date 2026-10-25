@@ -451,12 +451,45 @@ function updateHungerUI() {
   else if (game.satiety > 15) fill.style.backgroundColor = '#e76f51';
   else fill.style.backgroundColor = '#b85a7a';
 
+  // Обновляем цифры
   document.getElementById('invApples').textContent = game.apples;
   document.getElementById('invElixirs').textContent = game.elixirs;
   document.getElementById('invGoldenApples').textContent = game.goldenApples;
   document.getElementById('invSustenance').textContent = game.sustenancePotions;
   document.getElementById('invInsurance').textContent = game.insurancePotions;
   document.getElementById('invTotems').textContent = game.nightTotems;
+
+  // Управляем прозрачностью карточек (если 0 - тускнеет, если > 0 - подсвечивается)
+  const updateBoxState = (id, count) => {
+    const box = document.getElementById(id).closest('.inv-item-box');
+    if (box) {
+      if (count > 0) box.classList.remove('empty');
+      else box.classList.add('empty');
+    }
+  };
+
+  updateBoxState('invApples', game.apples);
+  updateBoxState('invGoldenApples', game.goldenApples);
+  updateBoxState('invElixirs', game.elixirs);
+  updateBoxState('invSustenance', game.sustenancePotions);
+  updateBoxState('invInsurance', game.insurancePotions);
+  updateBoxState('invTotems', game.nightTotems);
+
+  // Отключаем кнопки, если предметов 0
+  const btnApple = document.getElementById('btnEatApple');
+  if (btnApple) btnApple.disabled = game.apples <= 0;
+
+  const btnGoldApple = document.getElementById('btnEatGoldApple');
+  if (btnGoldApple) btnGoldApple.disabled = game.goldenApples <= 0;
+
+  const btnElixir = document.getElementById('btnDrinkElixir');
+  if (btnElixir) btnElixir.disabled = game.elixirs <= 0;
+
+  const btnSustenance = document.getElementById('btnDrinkSustenance');
+  if (btnSustenance) btnSustenance.disabled = game.sustenancePotions <= 0;
+
+  const btnInsurance = document.getElementById('btnDrinkInsurance');
+  if (btnInsurance) btnInsurance.disabled = game.insurancePotions <= 0;
 }
 
 function renderCalendar() {

@@ -1,9 +1,7 @@
 function getActionMultiplier() {
   let mult = 1;
   if (game.premiumLevel > 0 && game.workClicks % 10 === 0) mult *= getPremiumMult();
-  if (game.jackpotLevel > 0 && game.workClicks % 100 === 0) {
-    mult *= JACKPOT_MULTS[game.jackpotLevel - 1];
-  }
+  if (game.jackpotLevel > 0 && game.workClicks % 100 === 0) mult *= JACKPOT_MULTS[game.jackpotLevel - 1];
   if (game.calendarLevel > 0) {
     if (game.dayOfWeek === 5) mult *= game.calendarLevel === 3 ? 3 : 2;
     if (game.dayOfWeek === 6 && game.calendarLevel >= 2) mult *= game.calendarLevel === 3 ? 3 : 2;
@@ -86,7 +84,6 @@ function renderUpgradeInnerHTML(id, upg, stamMaxLv, earnMaxLv, plateMaxLv, precM
     const canStam = !stamMaxed && game.money >= stamC;
     const canEarn = !earnMaxed && game.money >= earnC;
 
-    // Stamina now appears for ALL jobs (removed the armorer/writer/scientist exclusion)
     html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Stamina <span>Lv ${upg.stamina} / ${stamMaxLv}</span></div><div class="upg-effect">-${(job.cdStep / 1000).toFixed(1)}s cooldown per level</div><div class="upg-stats">${(cd / 1000).toFixed(1)}s → ${(nextCd / 1000).toFixed(1)}s</div></div>${stamMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-stam-btn-${id}" onclick="buyUpgrade('${id}','stamina',event)" ${canStam ? '' : 'disabled'}>${formatMoney(stamC)}</button>`}</div>`;
 
     if (id !== 'scientist') {
@@ -106,32 +103,33 @@ function renderUpgradeInnerHTML(id, upg, stamMaxLv, earnMaxLv, plateMaxLv, precM
       const canP = !precMaxed && game.money >= pcC;
       let effect = '';
       if (id === 'sword') {
-        const t = currentThreshold(id);
-        const nt = Math.max(job.minThreshold, t - 7);
-        effect = 'Threshold: ' + t + (precMaxed ? '' : ' → ' + nt);
+        effect = 'Threshold: ' + currentThreshold(id) + (precMaxed ? '' : ' → ' + Math.max(job.minThreshold, currentThreshold(id) - 7));
       } else if (id === 'lawn') {
-        const t = Math.max(50, 85 - upg.precision * 3);
-        const nt = Math.max(50, 85 - (upg.precision + 1) * 3);
-        effect = 'Fail: ' + t + '%' + (precMaxed ? '' : ' → ' + nt + '%');
+        effect = 'Fail: ' + Math.max(50, 85 - upg.precision * 3) + '%' + (precMaxed ? '' : ' → ' + Math.max(50, 85 - (upg.precision + 1) * 3) + '%');
       } else if (id === 'chest') {
-        const currLimit = (3000 + upg.precision * 200) / 1000;
-        const nextLimit = (3000 + (upg.precision + 1) * 200) / 1000;
-        effect = 'Jam limit: ' + currLimit.toFixed(1) + 's → ' + nextLimit.toFixed(1) + 's';
+        effect = 'Jam limit: ' + ((3000 + upg.precision * 200) / 1000).toFixed(1) + 's → ' + ((3000 + (upg.precision + 1) * 200) / 1000).toFixed(1) + 's';
+      } else if (id === 'artist') {
+        const currMistakes = upg.precision;
+        const nextMistakes = upg.precision + 1;
+        if (precMaxed) {
+          effect = 'Mistakes allowed: ' + currMistakes + ' / 2 (MAX)';
+        } else {
+          effect = 'Mistakes allowed: ' + currMistakes + ' → ' + nextMistakes;
+        }
       }
       html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Precision <span>Lv ${upg.precision} / ${precMaxLv}</span></div><div class="upg-effect">${effect}</div></div>${precMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-prec-btn-${id}" onclick="buyUpgrade('${id}','precision',event)" ${canP ? '' : 'disabled'}>${formatMoney(pcC)}</button>`}</div>`;
     }
 
     if (id === 'writer') {
       const mCost = mistakeCost(id);
-      const canM = !mistakeMaxed && game.money >= mCost;
-      html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Draft <span>Lv ${upg.mistake} / ${mistakeMaxLv}</span></div><div class="upg-effect">Allows 1 typo</div></div>${mistakeMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-mistake-btn-${id}" onclick="buyUpgrade('${id}','mistake',event)" ${canM ? '' : 'disabled'}>${formatMoney(mCost)}</button>`}</div>`;
+      html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Draft <span>Lv ${upg.mistake} / ${mistakeMaxLv}</span></div><div class="upg-effect">Allows 1 typo</div></div>${mistakeMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-mistake-btn-${id}" onclick="buyUpgrade('${id}','mistake',event)" ${(!mistakeMaxed && game.money >= mCost) ? '' : 'disabled'}>${formatMoney(mCost)}</button>`}</div>`;
     }
 
     if (id === 'scientist') {
       const deg = upg.degree || 1;
       const dCost = degreeCost(id);
       const canD = !degreeMaxed && game.money >= dCost;
-      const nextPay = [0, 2100000, 3000000, 4800000, 7200000, 12000000][deg + 1] || 0;
+      const nextPay = [0, 8000000, 12000000, 16000000, 20000000, 24000000][deg + 1] || 0;
       html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Degree <span>Lv ${deg} / ${degreeMaxLv}</span></div><div class="upg-effect">Unlocks new research and raises pay.</div><div class="upg-stats">${formatMoney(pay)}${degreeMaxed ? '' : ' → ' + formatMoney(nextPay)}</div></div>${degreeMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-degree-btn-${id}" onclick="buyUpgrade('${id}','degree',event)" ${canD ? '' : 'disabled'}>${formatMoney(dCost)}</button>`}</div>`;
     }
   }
@@ -141,7 +139,7 @@ function renderUpgradeInnerHTML(id, upg, stamMaxLv, earnMaxLv, plateMaxLv, precM
   } else if (game.hasSlaveLicense) {
     const sCost = slaveCost(id);
     const canSlave = allMaxed && game.money >= sCost;
-    const slaveHint = ['lawn', 'sword', 'armorer', 'writer', 'scientist', 'chest'].includes(id) ? ' (Auto-succeeds)' : '';
+    const slaveHint = ['lawn', 'sword', 'armorer', 'writer', 'scientist', 'chest', 'artist'].includes(id) ? ' (Auto-succeeds)' : '';
     html += `<div class="upg-item" style="border-top: 1px dashed #3a3350; padding-top: 8px; margin-top: 2px;"><div class="upg-info"><div class="upg-title">Slave</div><div class="upg-effect">Automates this job permanently${slaveHint}</div></div><button class="upg-buy" id="upg-slave-btn-${id}" ${canSlave ? '' : 'disabled'} onclick="buySlave('${id}',event)">${allMaxed ? 'Buy — ' + formatMoney(sCost) : 'Locked'}</button></div>`;
   }
 
@@ -162,28 +160,24 @@ function selectJob(id) {
   saveGame();
 
   if (id === 'plates') generatePlateLayout(currentPlates('plates'));
-
-  if (id === 'sword') {
-    swordHits = 0;
-    swordStrikes = 0;
-    swordStartTime = 0;
-    swordAnimating = false;
-  }
-
+  if (id === 'sword') { swordHits = 0; swordStrikes = 0; swordStartTime = 0; swordAnimating = false; }
   if (id === 'chest') {
-    chestActive = false;
-    chestJammed = false;
-    chestIsTurning = false;
+    chestActive = false; chestJammed = false; chestIsTurning = false;
     if (chestRAF) cancelAnimationFrame(chestRAF);
     window.onmouseup = null;
   }
-
-  if (id === 'armorer') {
-    isCraftingActive = false;
-    craftTableState.fill(null);
-  }
+  if (id === 'armorer') { isCraftingActive = false; craftTableState.fill(null); }
   if (id === 'writer') isWritingActive = false;
   if (id === 'scientist') isResearchingActive = false;
+  if (id === 'artist') {
+    artistActive = false;
+    artistIsShowing = false;
+    if (artistFlashTimeout) clearTimeout(artistFlashTimeout);
+    if (artistCountdownTimeout) clearTimeout(artistCountdownTimeout);
+    artistCountdown = 0;
+    const grid = document.querySelector('.artist-grid');
+    if (grid) grid.classList.remove('showing');
+  }
 
   isLawnDrawing = false;
   lawnStarted = false;
@@ -202,9 +196,7 @@ function hireJob(id, e) {
   game.money = round2(game.money - job.hireCost);
   game.hiredJobs.push(id);
   if (!game.selectedJobId) game.selectedJobId = id;
-  if (!game.jobUpgrades[id]) {
-    game.jobUpgrades[id] = { stamina: 0, earnings: 0, plates: 0, precision: 0, mistake: 0, degree: 1 };
-  }
+  if (!game.jobUpgrades[id]) game.jobUpgrades[id] = { stamina: 0, earnings: 0, plates: 0, precision: 0, mistake: 0, degree: 1 };
   saveGame();
 
   if (id === 'plates') generatePlateLayout(currentPlates('plates'));
@@ -278,46 +270,22 @@ function updateAllBuyButtons() {
     const miM = mistakeMaxLv === 0 || upg.mistake >= mistakeMaxLv;
     const dM = degreeMaxLv === 0 || (upg.degree || 1) >= degreeMaxLv;
 
-    // Removed armorer/writer/scientist exclusions. Stamina buttons work everywhere now.
-    if (!sM) {
-      const b = document.getElementById('upg-stam-btn-' + j.id);
-      if (b) b.disabled = game.money < staminaCost(j.id);
-    }
-    if (j.id !== 'scientist' && !eM) {
-      const b = document.getElementById('upg-earn-btn-' + j.id);
-      if (b) b.disabled = game.money < earningsCost(j.id);
-    }
-    if (j.basePlates && !pM) {
-      const b = document.getElementById('upg-plates-btn-' + j.id);
-      if (b) b.disabled = game.money < platesCost(j.id);
-    }
-    if (j.precBase && !prM) {
-      const b = document.getElementById('upg-prec-btn-' + j.id);
-      if (b) b.disabled = game.money < precisionCost(j.id);
-    }
-    if (j.id === 'writer' && !miM) {
-      const b = document.getElementById('upg-mistake-btn-' + j.id);
-      if (b) b.disabled = game.money < mistakeCost(j.id);
-    }
-    if (j.id === 'scientist' && !dM) {
-      const b = document.getElementById('upg-degree-btn-' + j.id);
-      if (b) b.disabled = game.money < degreeCost(j.id);
-    }
+    if (!sM) { const b = document.getElementById('upg-stam-btn-' + j.id); if (b) b.disabled = game.money < staminaCost(j.id); }
+    if (j.id !== 'scientist' && !eM) { const b = document.getElementById('upg-earn-btn-' + j.id); if (b) b.disabled = game.money < earningsCost(j.id); }
+    if (j.basePlates && !pM) { const b = document.getElementById('upg-plates-btn-' + j.id); if (b) b.disabled = game.money < platesCost(j.id); }
+    if (j.precBase && !prM) { const b = document.getElementById('upg-prec-btn-' + j.id); if (b) b.disabled = game.money < precisionCost(j.id); }
+    if (j.id === 'writer' && !miM) { const b = document.getElementById('upg-mistake-btn-' + j.id); if (b) b.disabled = game.money < mistakeCost(j.id); }
+    if (j.id === 'scientist' && !dM) { const b = document.getElementById('upg-degree-btn-' + j.id); if (b) b.disabled = game.money < degreeCost(j.id); }
     if (game.hasSlaveLicense && !game.slaves[j.id] && sM && eM && pM && prM && dM) {
-      const b = document.getElementById('upg-slave-btn-' + j.id);
-      if (b) b.disabled = game.money < slaveCost(j.id);
+      const b = document.getElementById('upg-slave-btn-' + j.id); if (b) b.disabled = game.money < slaveCost(j.id);
     }
   });
 }
 
 function updateHint() {
   const hint = document.getElementById('workHint');
-  if (!game.hiredJobs.length) {
-    hint.textContent = 'Hire a job to begin earning.';
-    hint.classList.remove('hidden');
-  } else {
-    hint.classList.add('hidden');
-  }
+  if (!game.hiredJobs.length) { hint.textContent = 'Hire a job to begin earning.'; hint.classList.remove('hidden'); }
+  else hint.classList.add('hidden');
 }
 
 function updateBonusText() {
@@ -325,45 +293,20 @@ function updateBonusText() {
   let html = '';
   if (game.premiumLevel > 0 && game.hiredJobs.length > 0) {
     const cm = game.workClicks % 10;
-    html += cm === 9
-      ? `<div>Premium: next act (x${getPremiumMult().toFixed(1)})</div>`
-      : `<div>Premium in: ${10 - cm} acts (x${getPremiumMult().toFixed(1)})</div>`;
+    html += cm === 9 ? `<div>Premium: next act (x${getPremiumMult().toFixed(1)})</div>` : `<div>Premium in: ${10 - cm} acts (x${getPremiumMult().toFixed(1)})</div>`;
   }
   if (game.jackpotLevel > 0 && game.hiredJobs.length > 0) {
     const cj = game.workClicks % 100;
     const jm = JACKPOT_MULTS[game.jackpotLevel - 1];
-    html += cj === 99
-      ? `<div style="color:#f3e6c8; margin-top:4px;">Jackpot: next act (x${jm})</div>`
-      : `<div style="color:#b8a37a; margin-top:4px;">Jackpot in: ${100 - cj} acts (x${jm})</div>`;
+    html += cj === 99 ? `<div style="color:#f3e6c8; margin-top:4px;">Jackpot: next act (x${jm})</div>` : `<div style="color:#b8a37a; margin-top:4px;">Jackpot in: ${100 - cj} acts (x${jm})</div>`;
   }
   if (game.calendarLevel > 0 && (game.dayOfWeek === 5 || (game.dayOfWeek === 6 && game.calendarLevel >= 2))) {
-    const m = game.calendarLevel === 3 ? 3 : 2;
-    html += `<div style="color:#f3e6c8; margin-top:4px;">Weekend Bonus: x${m} active</div>`;
+    html += `<div style="color:#f3e6c8; margin-top:4px;">Weekend Bonus: x${game.calendarLevel === 3 ? 3 : 2} active</div>`;
   }
-  if (game.selectedJobId) {
-    const hm = getHungerMult();
-    html += `<div style="color:#b85a7a; margin-top:4px; font-weight:bold;">Hunger: ${(1 / hm).toFixed(2)}x speed</div>`;
-  }
-
-  if (Date.now() < game.elixirEndTime) {
-    const rem = Math.floor((game.elixirEndTime - Date.now()) / 1000);
-    const m = Math.floor(rem / 60);
-    const s = rem % 60;
-    html += `<div style="color:#a8c256; margin-top:4px; font-size:11px;">Elixir: 2x speed (${m}m ${s}s)</div>`;
-  }
-  if (Date.now() < game.sustenanceEndTime) {
-    const rem = Math.floor((game.sustenanceEndTime - Date.now()) / 1000);
-    const m = Math.floor(rem / 60);
-    const s = rem % 60;
-    html += `<div style="color:#4ade80; margin-top:4px; font-size:11px;">Sustenance: Halves hunger (${m}m ${s}s)</div>`;
-  }
-  if (Date.now() < game.insuranceEndTime) {
-    const rem = Math.floor((game.insuranceEndTime - Date.now()) / 1000);
-    const m = Math.floor(rem / 60);
-    const s = rem % 60;
-    html += `<div style="color:#4a90e2; margin-top:4px; font-size:11px;">Insurance: Fines blocked (${m}m ${s}s)</div>`;
-  }
-
+  if (game.selectedJobId) html += `<div style="color:#b85a7a; margin-top:4px; font-weight:bold;">Hunger: ${(1 / getHungerMult()).toFixed(2)}x speed</div>`;
+  if (Date.now() < game.elixirEndTime) html += `<div style="color:#a8c256; margin-top:4px; font-size:11px;">Elixir: 2x speed (${Math.floor((game.elixirEndTime - Date.now()) / 60000)}m)</div>`;
+  if (Date.now() < game.sustenanceEndTime) html += `<div style="color:#4ade80; margin-top:4px; font-size:11px;">Sustenance: Halves hunger (${Math.floor((game.sustenanceEndTime - Date.now()) / 60000)}m)</div>`;
+  if (Date.now() < game.insuranceEndTime) html += `<div style="color:#4a90e2; margin-top:4px; font-size:11px;">Insurance: Fines blocked (${Math.floor((game.insuranceEndTime - Date.now()) / 60000)}m)</div>`;
   el.innerHTML = html;
 }
 
@@ -377,14 +320,11 @@ function updateWorkButton() {
 
 function doWork() {
   if (!game || !game.selectedJobId || game.slaves[game.selectedJobId]) return;
-  if (['plates', 'lawn', 'sword', 'chest', 'armorer', 'writer', 'scientist'].includes(game.selectedJobId)) return;
+  if (['plates', 'lawn', 'sword', 'chest', 'armorer', 'writer', 'scientist', 'artist'].includes(game.selectedJobId)) return;
 
   const now = Date.now();
   if (game.workCooldownEnd && now < game.workCooldownEnd) return;
-  if (game.timeMinutes >= 0 && game.timeMinutes < 360) {
-    triggerNightPenalty(game.selectedJobId);
-    return;
-  }
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty(game.selectedJobId); return; }
 
   const job = JOBS.find(j => j.id === game.selectedJobId);
   if (!job) return;
@@ -418,46 +358,17 @@ function startCooldownTicker() {
   bar.classList.remove('inactive');
   renderPlateGrid();
 
-  const sb = document.getElementById('swordHitBtn');
-  if (sb && !sb.classList.contains('btn-success') && !sb.classList.contains('btn-fail')) {
-    sb.classList.add('btn-cooldown');
-    sb.disabled = true;
-  }
-  const lb = document.getElementById('lawnStartBtn');
-  if (lb && !lb.classList.contains('btn-success') && !lb.classList.contains('btn-fail')) lb.classList.add('btn-cooldown');
-  const cb = document.getElementById('chestStartBtn');
-  if (cb && !cb.classList.contains('btn-success') && !cb.classList.contains('btn-fail')) {
-    cb.classList.add('btn-cooldown');
-    cb.disabled = true;
-  }
-  const stb = document.getElementById('armorerStartBtn');
-  if (stb && !stb.classList.contains('btn-success') && !stb.classList.contains('btn-fail')) {
-    stb.classList.add('btn-cooldown');
-    stb.disabled = true;
-  }
-  const craftB = document.getElementById('craftBtn');
-  if (craftB && !craftB.classList.contains('btn-success') && !craftB.classList.contains('btn-fail')) {
-    craftB.classList.add('btn-cooldown');
-    craftB.disabled = true;
-  }
-  const wb = document.getElementById('writerStartBtn');
-  if (wb && !wb.classList.contains('btn-success') && !wb.classList.contains('btn-fail')) {
-    wb.classList.add('btn-cooldown');
-    wb.disabled = true;
-  }
-  const scb = document.getElementById('scientistStartBtn');
-  if (scb && !scb.classList.contains('btn-success') && !scb.classList.contains('btn-fail')) {
-    scb.classList.add('btn-cooldown');
-    scb.disabled = true;
-  }
+  const ids = ['swordHitBtn', 'lawnStartBtn', 'chestStartBtn', 'armorerStartBtn', 'craftBtn', 'writerStartBtn', 'scientistStartBtn', 'artistStartBtn'];
+  ids.forEach(id => {
+    const b = document.getElementById(id);
+    if (b && !b.classList.contains('btn-success') && !b.classList.contains('btn-fail')) {
+      b.classList.add('btn-cooldown'); b.disabled = true;
+    }
+  });
   const subb = document.getElementById('scientistSubmitBtn');
-  if (subb) {
-    subb.disabled = true;
-    subb.classList.add('btn-cooldown');
-  }
+  if (subb) { subb.disabled = true; subb.classList.add('btn-cooldown'); }
 
   if (cooldownInterval) clearInterval(cooldownInterval);
-
   let durationMult = game.lastCooldownMult || 1;
   let endTime = game.workCooldownEnd;
 
@@ -468,43 +379,28 @@ function startCooldownTicker() {
       endTime = now + (endTime - now) / durationMult * newMult;
       game.workCooldownEnd = endTime;
       game.lastCooldownDuration = game.lastCooldownDuration / durationMult * newMult;
-      durationMult = newMult;
-      game.lastCooldownMult = newMult;
-      saveGame();
+      durationMult = newMult; game.lastCooldownMult = newMult; saveGame();
     }
     if (game.workCooldownEnd && now < game.workCooldownEnd) {
       const rem = game.workCooldownEnd - now;
       let pct = 1 - rem / game.lastCooldownDuration;
-      if (pct < 0) pct = 0;
-      if (pct > 1) pct = 1;
-      fill.style.width = (pct * 100) + '%';
+      fill.style.width = (Math.min(1, Math.max(0, pct)) * 100) + '%';
       text.textContent = (rem / durationMult / 1000).toFixed(1) + 's';
     } else {
-      game.workCooldownEnd = 0;
-      saveGame();
-      bar.classList.add('inactive');
-      fill.style.width = '0%';
-      text.textContent = '0.0s';
-      clearInterval(cooldownInterval);
-      cooldownInterval = null;
-      updateWorkButton();
-      renderPlateGrid();
-      resetWorkButtonsAfterCooldown();
+      game.workCooldownEnd = 0; saveGame();
+      bar.classList.add('inactive'); fill.style.width = '0%'; text.textContent = '0.0s';
+      clearInterval(cooldownInterval); cooldownInterval = null;
+      updateWorkButton(); renderPlateGrid(); resetWorkButtonsAfterCooldown();
     }
   }, 50);
 }
 
 function resetWorkButtonsAfterCooldown() {
-  const ids = ['swordHitBtn', 'lawnStartBtn', 'chestStartBtn', 'armorerStartBtn', 'craftBtn', 'writerStartBtn', 'scientistStartBtn', 'scientistSubmitBtn'];
+  const ids = ['swordHitBtn', 'lawnStartBtn', 'chestStartBtn', 'armorerStartBtn', 'craftBtn', 'writerStartBtn', 'scientistStartBtn', 'artistStartBtn', 'scientistSubmitBtn'];
   const labels = {
-    swordHitBtn: 'Strike!',
-    lawnStartBtn: 'Start Mowing',
-    chestStartBtn: 'Start Picking',
-    armorerStartBtn: 'Start Crafting',
-    craftBtn: 'Craft!',
-    writerStartBtn: 'Start Writing',
-    scientistStartBtn: 'Start Research',
-    scientistSubmitBtn: 'Submit Answer'
+    swordHitBtn: 'Strike!', lawnStartBtn: 'Start Mowing', chestStartBtn: 'Start Picking',
+    armorerStartBtn: 'Start Crafting', craftBtn: 'Craft!', writerStartBtn: 'Start Writing',
+    scientistStartBtn: 'Start Research', artistStartBtn: 'Start Painting', scientistSubmitBtn: 'Submit Answer'
   };
   ids.forEach(id => {
     const b = document.getElementById(id);
@@ -513,51 +409,30 @@ function resetWorkButtonsAfterCooldown() {
     b.textContent = labels[id];
     if (id !== 'scientistSubmitBtn') b.disabled = false;
   });
-  renderArmorerUI();
-  renderWriterUI();
-  renderScientistUI();
+  renderArmorerUI(); renderWriterUI(); renderScientistUI();
   if (game.selectedJobId === 'chest') drawChest();
 }
 
 function triggerNightPenalty(jobId) {
   if (game.nightTotems > 0) {
-    game.nightTotems--;
-    saveGame();
-    updateHungerUI();
-    triggerAnim(true);
-    showModal('Saved by the Totem!',
-      `<div style="font-size: 13px; color: #b8a3d0; margin-bottom: 16px;">Matilda's guards almost caught you, but the Night Totem shattered, absorbing the punishment. You lose no money and no time.</div>` +
-      `<div style="font-size: 12px; color: #a8c256; font-weight: bold;">-1 Night Totem</div>`,
-      'Continue', null, closeModal, closeModal, 'small-modal');
+    game.nightTotems--; saveGame(); updateHungerUI(); triggerAnim(true);
+    showModal('Saved by the Totem!', `<div style="font-size: 13px; color: #b8a3d0; margin-bottom: 16px;">Matilda's guards almost caught you, but the Night Totem shattered, absorbing the punishment. You lose no money and no time.</div><div style="font-size: 12px; color: #a8c256; font-weight: bold;">-1 Night Totem</div>`, 'Continue', null, closeModal, closeModal, 'small-modal');
     return;
   }
-
-  const job = JOBS.find(j => j.id === jobId);
   const basePen = round2(currentPay(jobId) * 12.5);
   const slavePen = game.slaveNightEarnings || 0;
   const total = round2(basePen + slavePen);
-
   game.money = round2(Math.max(0, game.money - total));
   game.slaveNightEarnings = 0;
   const cd = applyCooldownMult(30000);
   game.workCooldownEnd = Date.now() + cd;
   game.lastCooldownDuration = cd;
   game.lastCooldownMult = getHungerMult() * getElixirMult();
-
-  saveGame();
-  document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-  showFloatingPenalty(total);
-  triggerAnim(false);
-
-  const slaveText = slavePen > 0
-    ? `<div style="font-size: 11px; color: #8a7fa5; margin-bottom: 12px;">(Includes ${formatMoney(slavePen)} from slaves)</div>`
-    : '';
+  saveGame(); document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+  showFloatingPenalty(total); triggerAnim(false);
+  const slaveText = slavePen > 0 ? `<div style="font-size: 11px; color: #8a7fa5; margin-bottom: 12px;">(Includes ${formatMoney(slavePen)} from slaves)</div>` : '';
   const reset = () => { closeModal(); startCooldownTicker(); };
-
-  showModal('Caught!',
-    `<div style="color: #b8a3d0; margin-bottom: 16px;">Night work is forbidden!</div><div style="font-size: 36px; color: #b85a7a; font-weight: bold;">-${formatMoney(total)}</div>${slaveText}<div style="font-size: 11px; color: #6b5a8a; margin-top: 8px;">Locked 30s. Tip: use a Night Totem next time.</div>`,
-    'Accept', null, reset, reset, 'small-modal');
-
+  showModal('Caught!', `<div style="color: #b8a3d0; margin-bottom: 16px;">Night work is forbidden!</div><div style="font-size: 36px; color: #b85a7a; font-weight: bold;">-${formatMoney(total)}</div>${slaveText}<div style="font-size: 11px; color: #6b5a8a; margin-top: 8px;">Locked 30s. Tip: use a Night Totem next time.</div>`, 'Accept', null, reset, reset, 'small-modal');
   updateWorkButton();
 }
 
@@ -566,26 +441,21 @@ function processSlaves() {
   let changed = false;
   const now = Date.now();
   const isNight = game.timeMinutes >= 0 && game.timeMinutes < 360;
-
   let slaveMult = 1;
   if (game.calendarLevel > 0) {
     if (game.dayOfWeek === 5) slaveMult *= game.calendarLevel === 3 ? 3 : 2;
     if (game.dayOfWeek === 6 && game.calendarLevel >= 2) slaveMult *= game.calendarLevel === 3 ? 3 : 2;
   }
-
   JOBS.forEach(job => {
     if (!game.slaves[job.id]) return;
     if (!game.slaveNextWork[job.id]) game.slaveNextWork[job.id] = now;
     if (now < game.slaveNextWork[job.id]) return;
-
     const pay = round2(currentPay(job.id) * slaveMult);
     game.money = round2(game.money + pay);
     if (isNight) game.slaveNightEarnings = (game.slaveNightEarnings || 0) + pay;
     game.slaveNextWork[job.id] = now + applyCooldownMult(getSlaveCooldown(job.id));
-    showFloatingMoney(pay, slaveMult, true);
-    changed = true;
+    showFloatingMoney(pay, slaveMult, true); changed = true;
   });
-
   if (changed) {
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
     updateAllBuyButtons();
@@ -597,20 +467,13 @@ function updateSelectedCooldownUI() {
   if (!game.selectedJobId || !game.slaves[game.selectedJobId]) return;
   const id = game.selectedJobId;
   const cd = applyCooldownMult(getSlaveCooldown(id));
-  const nextWork = game.slaveNextWork[id] || Date.now();
-  const rem = Math.max(0, nextWork - Date.now());
-  const pct = 1 - rem / cd;
-  const bar = document.getElementById('cooldownBar');
-  const fill = document.getElementById('cooldownFill');
-  const text = document.getElementById('cooldownText');
+  const rem = Math.max(0, (game.slaveNextWork[id] || Date.now()) - Date.now());
+  const bar = document.getElementById('cooldownBar'), fill = document.getElementById('cooldownFill'), text = document.getElementById('cooldownText');
   if (rem > 0) {
     bar.classList.remove('inactive');
-    fill.style.width = Math.min(100, Math.max(0, pct * 100)) + '%';
+    fill.style.width = Math.min(100, Math.max(0, (1 - rem / cd) * 100)) + '%';
     text.textContent = (rem / 1000).toFixed(1) + 's';
-  } else {
-    fill.style.width = '0%';
-    text.textContent = '0.0s';
-  }
+  } else { fill.style.width = '0%'; text.textContent = '0.0s'; }
 }
 
 function updateFastUI() {
@@ -620,24 +483,16 @@ function updateFastUI() {
   if (newMult !== game.lastAppleMult && game.appleReadyTime > now) {
     game.appleReadyTime = now + (game.appleReadyTime - now) / game.lastAppleMult * newMult;
     game.appleCdDuration = game.appleCdDuration / game.lastAppleMult * newMult;
-    game.lastAppleMult = newMult;
-    saveGame();
+    game.lastAppleMult = newMult; saveGame();
   }
-  const fill = document.getElementById('appleCdFill');
-  const txt = document.getElementById('appleCdText');
+  const fill = document.getElementById('appleCdFill'), txt = document.getElementById('appleCdText');
   if (fill && txt) {
     if (game.appleReadyTime > now) {
       const rem = game.appleReadyTime - now;
-      const total = game.appleCdDuration || 3000;
-      const pct = Math.min(100, Math.max(0, (1 - rem / total) * 100));
-      fill.style.width = pct + '%';
+      fill.style.width = Math.min(100, Math.max(0, (1 - rem / (game.appleCdDuration || 3000)) * 100)) + '%';
       txt.textContent = (rem / (game.lastAppleMult || 1) / 1000).toFixed(1) + 's';
       document.getElementById('startAppleBtn').disabled = true;
-    } else {
-      fill.style.width = '0%';
-      txt.textContent = '0.0s';
-      document.getElementById('startAppleBtn').disabled = false;
-    }
+    } else { fill.style.width = '0%'; txt.textContent = '0.0s'; document.getElementById('startAppleBtn').disabled = false; }
   }
   if (game.slaves[game.selectedJobId]) updateSelectedCooldownUI();
   updatePassiveIncomeUI();

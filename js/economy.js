@@ -5,15 +5,10 @@ function round2(n) {
 function formatNumber(num) {
   const isNeg = num < 0;
   num = Math.abs(num);
-  if (num < 1000) {
-    return (isNeg ? '-' : '') + num.toFixed(0);
-  }
+  if (num < 1000) return (isNeg ? '-' : '') + num.toFixed(0);
   const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
   let i = 0;
-  while (num >= 1000 && i < suffixes.length - 1) {
-    num /= 1000;
-    i++;
-  }
+  while (num >= 1000 && i < suffixes.length - 1) { num /= 1000; i++; }
   const decimals = num >= 100 ? 0 : num >= 10 ? 1 : 2;
   return (isNeg ? '-' : '') + parseFloat(num.toFixed(decimals)) + suffixes[i];
 }
@@ -22,15 +17,11 @@ function formatMoney(num) {
   const isNeg = num < 0;
   num = Math.abs(num);
   let str;
-  if (num < 1000) {
-    str = num.toFixed(2);
-  } else {
+  if (num < 1000) str = num.toFixed(2);
+  else {
     const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
     let i = 0;
-    while (num >= 1000 && i < suffixes.length - 1) {
-      num /= 1000;
-      i++;
-    }
+    while (num >= 1000 && i < suffixes.length - 1) { num /= 1000; i++; }
     const decimals = num >= 100 ? 0 : num >= 10 ? 1 : 2;
     str = parseFloat(num.toFixed(decimals)) + suffixes[i];
   }
@@ -40,27 +31,20 @@ function formatMoney(num) {
 function formatTime(seconds) {
   if (!seconds || isNaN(seconds)) return '0s';
   seconds = Math.floor(seconds);
-  if (seconds >= 3600) {
-    return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm';
-  }
-  if (seconds >= 60) {
-    return Math.floor(seconds / 60) + 'm ' + (seconds % 60) + 's';
-  }
+  if (seconds >= 3600) return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm';
+  if (seconds >= 60) return Math.floor(seconds / 60) + 'm ' + (seconds % 60) + 's';
   return seconds + 's';
 }
 
 function formatGameTime(mins) {
-  const h = Math.floor(mins / 60) % 24;
-  const m = Math.floor(mins % 60);
+  const h = Math.floor(mins / 60) % 24, m = Math.floor(mins % 60);
   return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
 }
 
 function getHungerMult() {
   if (!game) return 1;
   const sat = game.satiety;
-  if (sat >= 50) {
-    return 1 + (100 - sat) * 0.01;
-  }
+  if (sat >= 50) return 1 + (100 - sat) * 0.01;
   return 1.5 + Math.pow((50 - sat) / 50, 2) * 2.5;
 }
 
@@ -73,26 +57,14 @@ function applyCooldownMult(baseMs) {
   return baseMs * getHungerMult() * getElixirMult();
 }
 
-function getPremiumLevel() {
-  return (game && game.premiumLevel) || 0;
-}
-
-function getPremiumMult() {
-  const lvl = getPremiumLevel();
-  return lvl > 0 ? round2(1.2 + (lvl - 1) * 0.2) : 1;
-}
-
-function getPremiumPrice() {
-  return round2(20 * Math.pow(1.5, getPremiumLevel()));
-}
+function getPremiumLevel() { return (game && game.premiumLevel) || 0; }
+function getPremiumMult() { const lvl = getPremiumLevel(); return lvl > 0 ? round2(1.2 + (lvl - 1) * 0.2) : 1; }
+function getPremiumPrice() { return round2(20 * Math.pow(1.5, getPremiumLevel())); }
 
 function getJobData(jobId) {
   const job = JOBS.find(j => j.id === jobId);
   const upg = (game && game.jobUpgrades[jobId]) || { stamina: 0, earnings: 0, plates: 0, precision: 0, mistake: 0, degree: 1 };
-  upg.plates = upg.plates || 0;
-  upg.precision = upg.precision || 0;
-  upg.mistake = upg.mistake || 0;
-  upg.degree = upg.degree || 1;
+  upg.plates = upg.plates || 0; upg.precision = upg.precision || 0; upg.mistake = upg.mistake || 0; upg.degree = upg.degree || 1;
 
   const stamMaxLv = job.cdStep === 0 ? 0 : Math.floor((job.baseCd - job.maxCd) / job.cdStep);
   const earnMaxLv = jobId === 'scientist' ? 0 : Math.floor((job.maxPay - job.basePay) / job.payStep);
@@ -113,17 +85,12 @@ function getJobData(jobId) {
 
 function baseCooldown(jobId) {
   const { job, upg } = getJobData(jobId);
-  // Stamina now works for every job, including armorer / writer / scientist.
-  // Previously there was a hard-coded `return 60000;` for those three,
-  // which silently ignored every stamina upgrade the player bought.
   return Math.max(job.maxCd, job.baseCd - upg.stamina * job.cdStep);
 }
 
 function currentPay(jobId) {
   const { job, upg } = getJobData(jobId);
-  if (jobId === 'scientist') {
-    return [0, 2100000, 3000000, 4800000, 7200000, 12000000][upg.degree || 1] || 2100000;
-  }
+  if (jobId === 'scientist') return [0, 8000000, 12000000, 16000000, 20000000, 24000000][upg.degree || 1] || 8000000;
   return Math.min(job.maxPay, round2(job.basePay + upg.earnings * job.payStep));
 }
 
@@ -139,37 +106,15 @@ function currentPlates(jobId) {
   return Math.max(job.minPlates, job.basePlates - upg.plates * job.plateStep);
 }
 
-function staminaCost(jobId) {
-  const { job, upg } = getJobData(jobId);
-  return round2(job.stamBase * Math.pow(job.stamMult, upg.stamina));
-}
-
-function earningsCost(jobId) {
-  const { job, upg } = getJobData(jobId);
-  if (jobId === 'scientist') return 0;
-  return round2(job.earnBase * Math.pow(job.earnMult, upg.earnings));
-}
-
-function platesCost(jobId) {
-  const { job, upg } = getJobData(jobId);
-  if (!job.plateBase) return 0;
-  return round2(job.plateBase * Math.pow(job.plateMult, upg.plates));
-}
-
-function precisionCost(jobId) {
-  const { job, upg } = getJobData(jobId);
-  if (!job.precBase) return 0;
-  return round2(job.precBase * Math.pow(job.precMult, upg.precision));
-}
-
-function mistakeCost(jobId) {
-  return jobId === 'writer' ? 22500000 : 0;
-}
-
+function staminaCost(jobId) { const { job, upg } = getJobData(jobId); return round2(job.stamBase * Math.pow(job.stamMult, upg.stamina)); }
+function earningsCost(jobId) { const { job, upg } = getJobData(jobId); if (jobId === 'scientist') return 0; return round2(job.earnBase * Math.pow(job.earnMult, upg.earnings)); }
+function platesCost(jobId) { const { job, upg } = getJobData(jobId); if (!job.plateBase) return 0; return round2(job.plateBase * Math.pow(job.plateMult, upg.plates)); }
+function precisionCost(jobId) { const { job, upg } = getJobData(jobId); if (!job.precBase) return 0; return round2(job.precBase * Math.pow(job.precMult, upg.precision)); }
+function mistakeCost(jobId) { return jobId === 'writer' ? 5000000 : 0; }
 function degreeCost(jobId) {
   const { upg } = getJobData(jobId);
   if (jobId !== 'scientist') return 0;
-  return [0, 30000000, 45000000, 67500000, 100000000, 0][upg.degree || 1] || 0;
+  return [0, 10000000, 15000000, 22000000, 33000000, 0][upg.degree || 1] || 0;
 }
 
 function slaveCost(jobId) {
@@ -178,62 +123,46 @@ function slaveCost(jobId) {
   if (job.basePlates) base += platesCost(jobId);
   if (job.precBase) base += precisionCost(jobId);
   if (jobId === 'writer') base += mistakeCost(jobId);
-  if (jobId === 'scientist') base += 30000000 + 45000000 + 67500000 + 100000000;
+  if (jobId === 'scientist') base += 10000000 + 15000000 + 22000000 + 33000000;
   return round2(base * 1.35);
 }
 
 function getSlaveCooldown(jobId) {
   if (jobId === 'boxes' || jobId === 'dishes') return baseCooldown(jobId);
-  return ({ plates: 10000, lawn: 15000, sword: 15000, armorer: 25000, writer: 30000, scientist: 60000, chest: 60000 })[jobId] || 60000;
+  return ({ plates: 10000, lawn: 15000, sword: 15000, armorer: 25000, writer: 30000, scientist: 60000, chest: 60000, artist: 120000 })[jobId] || 60000;
+}
+
+function getFailCooldown(jobId) {
+  return ({
+    plates: 12000,
+    lawn: 18000,
+    sword: 27000,
+    armorer: 39000,
+    writer: 57000,
+    scientist: 81000,
+    chest: 117000,
+    artist: 144000
+  })[jobId] || 60000;
 }
 
 // ============================================================
-// DYNAMIC CONSUMABLE PRICES (Variant B: Depends on Current Pay)
+// DYNAMIC CONSUMABLE PRICES
 // ============================================================
 function getHighestCurrentPay() {
   let max = 0;
   if (!game || !game.hiredJobs) return DEFAULT_JOBS[0].basePay;
-  JOBS.forEach(j => {
-    if (game.hiredJobs.includes(j.id)) {
-      max = Math.max(max, currentPay(j.id));
-    }
-  });
+  JOBS.forEach(j => { if (game.hiredJobs.includes(j.id)) max = Math.max(max, currentPay(j.id)); });
   return max > 0 ? max : DEFAULT_JOBS[0].basePay;
 }
 
-function getSustenancePotionPrice() {
-  return Math.floor(getHighestCurrentPay() * 3);
-}
-
-function getGoldenApplePrice() {
-  return Math.floor(getHighestCurrentPay() * 5);
-}
-
-function getElixirPrice() {
-  return Math.floor(getHighestCurrentPay() * 7.5);
-}
-
-function getInsurancePotionPrice() {
-  return Math.floor(getHighestCurrentPay() * 12.5);
-}
-
-function getTotemPrice() {
-  return Math.floor(getHighestCurrentPay() * 25);
-}
-
-function getJackpotPrice() {
-  const lvl = game.jackpotLevel || 0;
-  if (lvl >= 5) return 0;
-  return JACKPOT_LEVELS[lvl];
-}
-
-function getBasketPrice() {
-  return [0, 2000, 6000, 18000, 50000][game.basketLevel + 1] || 0;
-}
-
-function getCalendarPrice() {
-  return [15000, 80000, 500000][game.calendarLevel] || 0;
-}
+function getSustenancePotionPrice() { return Math.floor(getHighestCurrentPay() * 3); }
+function getGoldenApplePrice() { return Math.floor(getHighestCurrentPay() * 5); }
+function getElixirPrice() { return Math.floor(getHighestCurrentPay() * 7.5); }
+function getInsurancePotionPrice() { return Math.floor(getHighestCurrentPay() * 12.5); }
+function getTotemPrice() { return Math.floor(getHighestCurrentPay() * 25); }
+function getJackpotPrice() { const lvl = game.jackpotLevel || 0; if (lvl >= 5) return 0; return JACKPOT_LEVELS[lvl]; }
+function getBasketPrice() { return [0, 2000, 6000, 18000, 50000][game.basketLevel + 1] || 0; }
+function getCalendarPrice() { return [15000, 80000, 500000][game.calendarLevel] || 0; }
 
 // ============================================================
 // PASSIVE INCOME
@@ -253,12 +182,6 @@ function getSlaveIncomePerSecond() {
 function updatePassiveIncomeUI() {
   const el = document.getElementById('passiveIncomeDisplay');
   if (!el || !game) return;
-
-  if (game.hasPassiveIncomeMeter) {
-    el.classList.remove('hidden');
-    const income = getSlaveIncomePerSecond();
-    el.textContent = '+' + formatMoney(income) + '/s';
-  } else {
-    el.classList.add('hidden');
-  }
+  if (game.hasPassiveIncomeMeter) { el.classList.remove('hidden'); el.textContent = '+' + formatMoney(getSlaveIncomePerSecond()) + '/s'; }
+  else el.classList.add('hidden');
 }

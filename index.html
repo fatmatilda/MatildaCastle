@@ -103,7 +103,6 @@
           </div>
           
           <div class="table-area" style="flex-direction: column; align-items: stretch;">
-            
             <div class="inventory-grid">
               <div class="inv-item-box inv-apple">
                 <span class="inv-name">Apples</span>
@@ -225,6 +224,25 @@
                 <div id="sciTaskText" class="sci-task-row"></div>
               </div>
               <button class="work-btn sci-submit-btn" id="scientistSubmitBtn" onclick="submitScientistTask()">Submit Answer</button>
+            </div>
+          </div>
+
+          <div class="artist-area hidden" id="artistContainer">
+            <div id="artistStartContainer" style="width: 100%; display: flex; justify-content: center; padding: 20px 0;">
+              <button class="work-btn" id="artistStartBtn" onclick="startArtistWork()">Start Painting</button>
+            </div>
+            <div id="artistActiveContainer" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+              <div id="artistStatusText" style="font-size:16px; color:#b8a37a; margin-bottom:20px; text-align:center; font-weight:bold;">Watch closely...</div>
+              <div class="artist-grid">
+                <div class="artist-block" id="artist-block-0" onclick="handleArtistClick(0)" style="--c: #e76f51;"></div>
+                <div class="artist-block" id="artist-block-1" onclick="handleArtistClick(1)" style="--c: #f4a261;"></div>
+                <div class="artist-block" id="artist-block-2" onclick="handleArtistClick(2)" style="--c: #e9c46a;"></div>
+                <div class="artist-block" id="artist-block-3" onclick="handleArtistClick(3)" style="--c: #2a9d8f;"></div>
+                <div class="artist-block" id="artist-block-4" onclick="handleArtistClick(4)" style="--c: #264653;"></div>
+                <div class="artist-block" id="artist-block-5" onclick="handleArtistClick(5)" style="--c: #e76f51;"></div>
+                <div class="artist-block" id="artist-block-6" onclick="handleArtistClick(6)" style="--c: #a8c256;"></div>
+                <div class="artist-block" id="artist-block-7" onclick="handleArtistClick(7)" style="--c: #d4b8ff;"></div>
+              </div>
             </div>
           </div>
           

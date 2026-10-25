@@ -1,8 +1,5 @@
 let chestAttemptRot = 0;
 
-// ============================================================
-// INSURANCE HELPER
-// ============================================================
 function applyInsurance(rawPen) {
   if (game && Date.now() < game.insuranceEndTime) return { amount: 0, insured: true };
   return { amount: rawPen, insured: false };
@@ -41,8 +38,7 @@ function startAppleGame() {
   document.getElementById('appleGreenZone').style.left = appleGreenStart + '%';
   document.getElementById('applePointer').style.display = 'block';
   document.getElementById('appleTrack').classList.remove('hidden');
-  applePos = 0;
-  appleStartTime = 0;
+  applePos = 0; appleStartTime = 0;
   if (appleRAF) cancelAnimationFrame(appleRAF);
   appleRAF = requestAnimationFrame(animateAppleRAF);
 }
@@ -54,37 +50,27 @@ function pickApple() {
   if (appleRAF) { cancelAnimationFrame(appleRAF); appleRAF = null; }
   document.getElementById('applePointer').style.display = 'none';
   document.getElementById('appleTrack').classList.add('hidden');
-  const btn = document.getElementById('startAppleBtn');
-  btn.disabled = true;
+  const btn = document.getElementById('startAppleBtn'); btn.disabled = true;
   let cd = 0;
   const base = 3000 + game.basketLevel * 2000;
   if (pos >= appleGreenStart && pos <= appleGreenStart + 10) {
-    btn.classList.add('btn-success');
-    btn.textContent = 'Success!';
+    btn.classList.add('btn-success'); btn.textContent = 'Success!';
     game.apples += game.basketLevel + 1;
     cd = applyCooldownMult(base);
   } else {
-    btn.classList.add('btn-fail');
-    btn.textContent = 'Missed!';
+    btn.classList.add('btn-fail'); btn.textContent = 'Missed!';
     cd = applyCooldownMult(base * 20);
   }
   game.appleReadyTime = Date.now() + cd;
   game.appleCdDuration = cd;
   game.lastAppleMult = getHungerMult() * getElixirMult();
-  saveGame();
-  updateHungerUI();
-  setTimeout(() => {
-    btn.classList.remove('btn-success', 'btn-fail');
-    btn.textContent = 'Pick Apples';
-  }, 1000);
+  saveGame(); updateHungerUI();
+  setTimeout(() => { btn.classList.remove('btn-success', 'btn-fail'); btn.textContent = 'Pick Apples'; }, 1000);
 }
 
 function eatApple(e) {
   if (!game || game.apples <= 0) { triggerError(e.target); return; }
-  game.apples--;
-  game.satiety = Math.min(100, game.satiety + 5);
-  saveGame();
-  updateHungerUI();
+  game.apples--; game.satiety = Math.min(100, game.satiety + 5); saveGame(); updateHungerUI();
 }
 
 function drinkElixir(e) {
@@ -92,9 +78,7 @@ function drinkElixir(e) {
   game.elixirs--;
   const now = Date.now();
   game.elixirEndTime = (game.elixirEndTime > now ? game.elixirEndTime : now) + 150000;
-  saveGame();
-  updateHungerUI();
-  updateBonusText();
+  saveGame(); updateHungerUI(); updateBonusText();
 }
 
 // ============================================================
@@ -122,35 +106,31 @@ function animateSwordMeterRAF() {
 
 function getSwordPowerAtClick() {
   if (!swordStartTime) return 0;
-  const elapsed = performance.now() - swordStartTime;
-  const cycle = (elapsed * 0.15) % 200;
+  const cycle = (performance.now() - swordStartTime) * 0.15 % 200;
   return Math.floor(cycle <= 100 ? cycle : 200 - cycle);
 }
 
 function hitSword() {
-  if (!game || game.selectedJobId !== 'sword' || game.slaves['sword']) return;
+  if (!game || game.selectedJobId !== 'sword' || game.slaves['sword'] || swordAnimating) return;
   const btn = document.getElementById('swordHitBtn');
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(btn); return; }
   if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('sword'); return; }
 
   const power = getSwordPowerAtClick();
   document.getElementById('swordHitMarker').textContent = power + '%';
-  swordHits += power;
-  swordStrikes++;
+  swordHits += power; swordStrikes++;
   const textEl = document.getElementById('swordHitsText');
 
   if (swordStrikes < 5) {
     textEl.textContent = 'Hit Power: ' + swordHits + ' / ' + currentThreshold('sword');
     textEl.style.transform = 'scale(1.1)';
     setTimeout(() => textEl.style.transform = 'scale(1)', 100);
-    saveGame();
-    return;
+    saveGame(); return;
   }
 
   const threshold = currentThreshold('sword');
   const success = swordHits >= threshold;
-  btn.disabled = true;
-  btn.textContent = 'Forging...';
+  btn.disabled = true; btn.textContent = 'Forging...';
   textEl.textContent = 'Final Power: ' + swordHits + ' / ' + threshold;
   textEl.style.color = '#f3e6c8';
   swordAnimating = true;
@@ -160,51 +140,37 @@ function hitSword() {
     swordStartTime = performance.now();
     if (success) {
       game.workClicks++;
-      let pay = currentPay('sword');
-      const mult = getActionMultiplier();
-      pay = round2(pay * mult);
+      let pay = round2(currentPay('sword') * getActionMultiplier());
       game.money = round2(game.money + pay);
       const cd = applyCooldownMult(baseCooldown('sword'));
       game.workCooldownEnd = Date.now() + cd;
       game.lastCooldownDuration = cd;
       game.lastCooldownMult = getHungerMult() * getElixirMult();
-      showFloatingMoney(pay, mult, false);
-      startCooldownTicker();
-      btn.classList.add('btn-success');
-      btn.textContent = 'Success!';
+      showFloatingMoney(pay, getActionMultiplier(), false); startCooldownTicker();
+      btn.classList.add('btn-success'); btn.textContent = 'Success!';
       textEl.style.color = '#a8c256';
       document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-      updateAllBuyButtons();
-      updateBonusText();
-      triggerAnim(true);
+      updateAllBuyButtons(); updateBonusText(); triggerAnim(true);
     } else {
       const { amount: pen, insured } = applyInsurance(round2(currentPay('sword') * 2));
       game.money = round2(Math.max(0, game.money - pen));
-      const cd = applyCooldownMult(60000);
+      const cd = applyCooldownMult(getFailCooldown('sword'));
       game.workCooldownEnd = Date.now() + cd;
       game.lastCooldownDuration = cd;
       game.lastCooldownMult = getHungerMult() * getElixirMult();
       if (pen > 0) showFloatingPenalty(pen);
       startCooldownTicker();
-      btn.classList.add('btn-fail');
-      btn.textContent = 'Failed!';
+      btn.classList.add('btn-fail'); btn.textContent = 'Failed!';
       textEl.style.color = '#b85a7a';
       document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-      updateAllBuyButtons();
-      updateBonusText();
-      triggerAnim(false);
+      updateAllBuyButtons(); updateBonusText(); triggerAnim(false);
       const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
       setTimeout(() => showModal('Failed!', 'Sword broke. Fine: ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal'), 600);
     }
     setTimeout(() => {
-      document.getElementById('swordHitsText').textContent = 'Hits: 0 / 5';
+      textEl.textContent = 'Hit Power: 0 / ' + currentThreshold('sword');
       document.getElementById('swordHitMarker').textContent = '0%';
-      swordStrikes = 0;
-      swordHits = 0;
-      updateWorkButton();
-      if (game.selectedJobId === 'sword') {
-        document.getElementById('swordHitsText').textContent = 'Hit Power: ' + swordHits + ' / ' + currentThreshold('sword');
-      }
+      swordStrikes = 0; swordHits = 0; updateWorkButton();
     }, 2500);
   }, 1500);
   saveGame();
@@ -217,9 +183,7 @@ function generateLawnCurve() {
   lawnPoints = [];
   const angle = Math.random() * Math.PI * 2;
   const freq = 0.02 + Math.random() * 0.03;
-  for (let x = 20; x <= 300; x += 2) {
-    lawnPoints.push({ x, y: 50 + Math.sin(x * freq + angle) * 30, traced: false });
-  }
+  for (let x = 20; x <= 300; x += 2) lawnPoints.push({ x, y: 50 + Math.sin(x * freq + angle) * 30, traced: false });
 }
 
 function setupLawnCanvas() {
@@ -231,27 +195,20 @@ function setupLawnCanvas() {
   canvas.onmousedown = (e) => {
     if (lawnStarted) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
     const start = lawnPoints[0];
     if (Math.hypot(start.x - x, start.y - y) < 25) {
-      lawnStarted = true;
-      isLawnDrawing = true;
-      lastMouseX = x;
-      lastMouseY = y;
+      lawnStarted = true; isLawnDrawing = true; lastMouseX = x; lastMouseY = y;
       document.getElementById('lawnStatusText').textContent = 'Tracing...';
     }
   };
   canvas.onmousemove = (e) => {
     if (!isLawnDrawing) return;
     const rect = canvas.getBoundingClientRect();
-    lastMouseX = e.clientX - rect.left;
-    lastMouseY = e.clientY - rect.top;
+    lastMouseX = e.clientX - rect.left; lastMouseY = e.clientY - rect.top;
     checkLawnAccuracy(lastMouseX, lastMouseY);
   };
-  window.onmouseup = () => {
-    if (isLawnDrawing) { isLawnDrawing = false; failLawnJob(); }
-  };
+  window.onmouseup = () => { if (isLawnDrawing) { isLawnDrawing = false; failLawnJob(); } };
   drawLawn();
 }
 
@@ -260,27 +217,18 @@ function startLawnGame() {
   const btn = document.getElementById('lawnStartBtn');
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(btn); return; }
   if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('lawn'); return; }
-  btn.classList.remove('btn-success', 'btn-fail', 'btn-cooldown');
-  btn.textContent = 'Mowing...';
-  btn.disabled = true;
-  isLawnDrawing = false;
-  lawnStarted = false;
-  lawnProgress = 0;
-  lawnAccuracy = 100;
+  btn.classList.remove('btn-success', 'btn-fail', 'btn-cooldown'); btn.textContent = 'Mowing...'; btn.disabled = true;
+  isLawnDrawing = false; lawnStarted = false; lawnProgress = 0; lawnAccuracy = 100;
   document.getElementById('lawnStatusText').textContent = 'Hold near the start dot';
   document.getElementById('lawnAccText').textContent = 'Accuracy: 100.00%';
   document.getElementById('lawnAccFill').style.width = '100%';
-  generateLawnCurve();
-  drawLawn();
+  generateLawnCurve(); drawLawn();
 }
 
 function checkLawnAccuracy(x, y) {
   if (!isLawnDrawing) return;
   let minDist = Infinity, closestIdx = -1;
-  lawnPoints.forEach((p, i) => {
-    const d = Math.hypot(p.x - x, p.y - y);
-    if (d < minDist) { minDist = d; closestIdx = i; }
-  });
+  lawnPoints.forEach((p, i) => { const d = Math.hypot(p.x - x, p.y - y); if (d < minDist) { minDist = d; closestIdx = i; } });
   let drop = 0;
   if (minDist > 3) drop = 0.05 + minDist * 0.015;
   else if (minDist > 1) drop = 0.01 + minDist * 0.005;
@@ -301,83 +249,53 @@ function checkLawnAccuracy(x, y) {
 function drawLawn(userX, userY) {
   if (!lawnCtx) return;
   lawnCtx.clearRect(0, 0, 320, 100);
-  lawnCtx.lineJoin = 'round';
-  lawnCtx.lineCap = 'round';
-  lawnCtx.beginPath();
-  lawnCtx.moveTo(lawnPoints[0].x, lawnPoints[0].y);
+  lawnCtx.lineJoin = 'round'; lawnCtx.lineCap = 'round';
+  lawnCtx.beginPath(); lawnCtx.moveTo(lawnPoints[0].x, lawnPoints[0].y);
   for (let i = 1; i < lawnPoints.length; i++) lawnCtx.lineTo(lawnPoints[i].x, lawnPoints[i].y);
-  lawnCtx.strokeStyle = '#5a4a6a';
-  lawnCtx.lineWidth = 6;
-  lawnCtx.stroke();
+  lawnCtx.strokeStyle = '#5a4a6a'; lawnCtx.lineWidth = 6; lawnCtx.stroke();
   lawnCtx.beginPath();
   for (let i = 1; i < lawnPoints.length; i++) {
-    if (lawnPoints[i].traced) {
-      lawnCtx.moveTo(lawnPoints[i - 1].x, lawnPoints[i - 1].y);
-      lawnCtx.lineTo(lawnPoints[i].x, lawnPoints[i].y);
-    }
+    if (lawnPoints[i].traced) { lawnCtx.moveTo(lawnPoints[i - 1].x, lawnPoints[i - 1].y); lawnCtx.lineTo(lawnPoints[i].x, lawnPoints[i].y); }
   }
-  lawnCtx.strokeStyle = '#a8c256';
-  lawnCtx.lineWidth = 8;
-  lawnCtx.stroke();
+  lawnCtx.strokeStyle = '#a8c256'; lawnCtx.lineWidth = 8; lawnCtx.stroke();
   const rad = 4 + Math.sin(Date.now() / 200) * 2;
   lawnCtx.fillStyle = '#f3e6c8';
-  lawnCtx.beginPath();
-  lawnCtx.arc(lawnPoints[0].x, lawnPoints[0].y, rad, 0, Math.PI * 2);
-  lawnCtx.fill();
+  lawnCtx.beginPath(); lawnCtx.arc(lawnPoints[0].x, lawnPoints[0].y, rad, 0, Math.PI * 2); lawnCtx.fill();
   const last = lawnPoints[lawnPoints.length - 1];
-  lawnCtx.beginPath();
-  lawnCtx.arc(last.x, last.y, rad, 0, Math.PI * 2);
-  lawnCtx.fill();
+  lawnCtx.beginPath(); lawnCtx.arc(last.x, last.y, rad, 0, Math.PI * 2); lawnCtx.fill();
   if (userX !== undefined && userY !== undefined) {
-    lawnCtx.fillStyle = '#fff';
-    lawnCtx.beginPath();
-    lawnCtx.arc(userX, userY, 3, 0, Math.PI * 2);
-    lawnCtx.fill();
+    lawnCtx.fillStyle = '#fff'; lawnCtx.beginPath(); lawnCtx.arc(userX, userY, 3, 0, Math.PI * 2); lawnCtx.fill();
   }
 }
 
 function finishLawnJob(success) {
   isLawnDrawing = false;
-  const btn = document.getElementById('lawnStartBtn');
-  btn.disabled = true;
+  const btn = document.getElementById('lawnStartBtn'); btn.disabled = true;
   if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('lawn'); document.getElementById('lawnStatusText').textContent = 'Caught!'; return; }
   if (success) {
     game.workClicks++;
-    btn.classList.add('btn-success');
-    btn.textContent = 'Success!';
-    let pay = currentPay('lawn');
-    const mult = getActionMultiplier();
-    pay = round2(pay * mult);
+    btn.classList.add('btn-success'); btn.textContent = 'Success!';
+    let pay = round2(currentPay('lawn') * getActionMultiplier());
     game.money = round2(game.money + pay);
     const cd = applyCooldownMult(baseCooldown('lawn'));
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingMoney(pay, mult, false);
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
+    showFloatingMoney(pay, getActionMultiplier(), false);
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(true);
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(true);
   } else {
-    btn.classList.add('btn-fail');
-    btn.textContent = 'Failed!';
+    btn.classList.add('btn-fail'); btn.textContent = 'Failed!';
     const { amount: pen, insured } = applyInsurance(round2(currentPay('lawn') * 2));
     game.money = round2(Math.max(0, game.money - pen));
-    const cd = applyCooldownMult(30000);
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    const cd = applyCooldownMult(getFailCooldown('lawn'));
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
     if (pen > 0) showFloatingPenalty(pen);
     const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
     showModal('Failed!', 'Lawn ruined. Fine: ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal');
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(false);
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(false);
   }
   document.getElementById('lawnStatusText').textContent = success ? 'Success!' : 'Failed!';
-  updateWorkButton();
-  startCooldownTicker();
+  updateWorkButton(); startCooldownTicker();
 }
 
 function failLawnJob() { finishLawnJob(false); }
@@ -387,25 +305,19 @@ function failLawnJob() { finishLawnJob(false); }
 // ============================================================
 function generatePlateLayout(count) {
   const arr = Array.from({ length: count }, (_, i) => i + 1);
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  game.plateLayout = arr;
-  game.plateCurrentTarget = 1;
+  for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+  game.plateLayout = arr; game.plateCurrentTarget = 1;
 }
 
 function renderPlateGrid() {
   const grid = document.getElementById('plateGrid');
-  if (!grid) return;
+  if (!grid || !game) return;
   grid.innerHTML = '';
   const cd = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
-  const cols = Math.ceil(game.plateLayout.length / 2);
-  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid.style.gridTemplateColumns = `repeat(${Math.ceil(game.plateLayout.length / 2)}, 1fr)`;
   game.plateLayout.forEach(num => {
     const btn = document.createElement('button');
-    btn.className = 'plate-btn';
-    btn.textContent = num;
+    btn.className = 'plate-btn'; btn.textContent = num;
     btn.disabled = cd || num < game.plateCurrentTarget;
     btn.onclick = () => clickPlate(num, btn);
     grid.appendChild(btn);
@@ -415,57 +327,28 @@ function renderPlateGrid() {
 function clickPlate(num, btn) {
   if (!game || game.selectedJobId !== 'plates' || game.slaves['plates']) return;
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) return;
-  if (game.timeMinutes >= 0 && game.timeMinutes < 360) {
-    triggerNightPenalty('plates');
-    generatePlateLayout(currentPlates('plates'));
-    renderPlateGrid();
-    return;
-  }
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('plates'); generatePlateLayout(currentPlates('plates')); renderPlateGrid(); return; }
   if (num === game.plateCurrentTarget) {
     game.plateCurrentTarget++;
-    if (game.plateCurrentTarget > currentPlates('plates')) {
-      finishPlateJob();
-    } else {
-      btn.disabled = true;
-      saveGame();
-    }
+    if (game.plateCurrentTarget > currentPlates('plates')) finishPlateJob();
+    else { btn.disabled = true; saveGame(); }
   } else {
-    btn.classList.add('error');
-    game.plateCurrentTarget = 1;
-    saveGame();
-    setTimeout(() => {
-      generatePlateLayout(currentPlates('plates'));
-      renderPlateGrid();
-    }, 300);
+    btn.classList.add('error'); game.plateCurrentTarget = 1; saveGame();
+    setTimeout(() => { generatePlateLayout(currentPlates('plates')); renderPlateGrid(); }, 300);
   }
 }
 
 function finishPlateJob() {
-  if (game.timeMinutes >= 0 && game.timeMinutes < 360) {
-    triggerNightPenalty('plates');
-    generatePlateLayout(currentPlates('plates'));
-    renderPlateGrid();
-    return;
-  }
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('plates'); generatePlateLayout(currentPlates('plates')); renderPlateGrid(); return; }
   game.workClicks++;
-  let pay = currentPay('plates');
-  const mult = getActionMultiplier();
-  pay = round2(pay * mult);
+  let pay = round2(currentPay('plates') * getActionMultiplier());
   const cd = applyCooldownMult(baseCooldown('plates'));
   game.money = round2(game.money + pay);
-  game.workCooldownEnd = Date.now() + cd;
-  game.lastCooldownDuration = cd;
-  game.lastCooldownMult = getHungerMult() * getElixirMult();
-  generatePlateLayout(currentPlates('plates'));
-  saveGame();
+  game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
+  generatePlateLayout(currentPlates('plates')); saveGame();
   document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-  showFloatingMoney(pay, mult, false);
-  updateWorkButton();
-  updateAllBuyButtons();
-  updateBonusText();
-  renderPlateGrid();
-  startCooldownTicker();
-  triggerAnim(true);
+  showFloatingMoney(pay, getActionMultiplier(), false);
+  updateWorkButton(); updateAllBuyButtons(); updateBonusText(); renderPlateGrid(); startCooldownTicker(); triggerAnim(true);
 }
 
 // ============================================================
@@ -477,20 +360,10 @@ function startChestGame() {
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(btn); return; }
   if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('chest'); return; }
 
-  chestActive = true;
-  chestIsTurning = false;
-  chestJammed = false;
-  chestTotalJamTime = 0;
-  chestAttemptRot = 0;
-  chestAngle = 0;
-  chestTarget = Math.floor(Math.random() * 360);
-  chestLastFrame = 0;
-  chestMaxRot = 0;
-
-  btn.disabled = true;
-  btn.classList.add('btn-cooldown');
-  btn.textContent = 'Picking...';
-
+  chestActive = true; chestIsTurning = false; chestJammed = false; chestTotalJamTime = 0;
+  chestAttemptRot = 0; chestAngle = 0; chestTarget = Math.floor(Math.random() * 360);
+  chestLastFrame = 0; chestMaxRot = 0;
+  btn.disabled = true; btn.classList.add('btn-cooldown'); btn.textContent = 'Picking...';
   document.getElementById('chestJamFill').style.width = '0%';
   document.getElementById('chestJamText').textContent = 'Lockpick break: 0%';
   document.getElementById('chestStatusText').textContent = 'Move mouse to rotate, hold LMB to pick.';
@@ -501,32 +374,17 @@ function startChestGame() {
   canvas.onmousemove = (e) => {
     if (!chestActive || chestIsTurning || chestJammed) return;
     const rect = canvas.getBoundingClientRect();
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    let angle = Math.atan2(y - cy, x - cx) * (180 / Math.PI);
+    let angle = Math.atan2(e.clientY - rect.top - rect.height / 2, e.clientX - rect.left - rect.width / 2) * (180 / Math.PI);
     if (angle < 0) angle += 360;
-    chestAngle = angle;
-    drawChest();
+    chestAngle = angle; drawChest();
   };
 
   canvas.onmousedown = (e) => {
-    if (!chestActive || chestJammed) return;
-    if (e.button !== 0) return;
-
-    chestIsTurning = true;
-    chestAttemptRot = 0;
-
+    if (!chestActive || chestJammed || e.button !== 0) return;
+    chestIsTurning = true; chestAttemptRot = 0;
     let dist = Math.abs(chestAngle - chestTarget);
     if (dist > 180) dist = 360 - dist;
-
-    if (dist <= 5) {
-      chestMaxRot = 360;
-    } else {
-      chestMaxRot = Math.max(0, (180 - dist) * 2);
-    }
-
+    chestMaxRot = dist <= 5 ? 360 : Math.max(0, (180 - dist) * 2);
     if (!chestLastFrame) chestLastFrame = performance.now();
     if (chestRAF) cancelAnimationFrame(chestRAF);
     chestRAF = requestAnimationFrame(animateChestLock);
@@ -534,31 +392,19 @@ function startChestGame() {
 
   window.onmouseup = () => {
     if (!chestActive) return;
-
     if (chestJammed) {
       chestTotalJamTime += (Date.now() - chestJamStartTime);
-
       if (chestTotalJamTime >= 3000) {
-        chestActive = false;
-        chestJammed = false;
+        chestActive = false; chestJammed = false;
         if (chestRAF) cancelAnimationFrame(chestRAF);
-        chestRAF = null;
-        window.onmouseup = null;
-        finishChestJob(false);
-        return;
+        chestRAF = null; window.onmouseup = null;
+        finishChestJob(false); return;
       }
-
-      chestJammed = false;
-      chestIsTurning = false;
+      chestJammed = false; chestIsTurning = false;
       document.getElementById('chestStatusText').textContent = 'Jam reset. Try again.';
-    } else {
-      chestIsTurning = false;
-    }
-
-    chestAttemptRot = 0;
-    drawChest();
+    } else chestIsTurning = false;
+    chestAttemptRot = 0; drawChest();
   };
-
   drawChest();
 }
 
@@ -567,69 +413,38 @@ function animateChestLock(ts) {
   if (!chestLastFrame) chestLastFrame = ts;
   const dt = Math.min(0.1, (ts - chestLastFrame) / 1000);
   chestLastFrame = ts;
-
   if (chestIsTurning && !chestJammed) {
     const rotAmount = 180 * dt;
-    chestAngle += rotAmount;
-    if (chestAngle >= 360) chestAngle -= 360;
-
+    chestAngle += rotAmount; if (chestAngle >= 360) chestAngle -= 360;
     chestAttemptRot += rotAmount;
-
     if (chestAttemptRot >= 360) {
-      chestAttemptRot = 360;
-      drawChest();
-
-      chestActive = false;
+      chestAttemptRot = 360; drawChest(); chestActive = false;
       if (chestRAF) cancelAnimationFrame(chestRAF);
-      chestRAF = null;
-      window.onmouseup = null;
-
-      finishChestJob(true);
-      return;
+      chestRAF = null; window.onmouseup = null; finishChestJob(true); return;
     }
-
     if (chestAttemptRot >= chestMaxRot) {
-      chestJammed = true;
-      chestIsTurning = false;
-      chestJamStartTime = Date.now();
+      chestJammed = true; chestIsTurning = false; chestJamStartTime = Date.now();
       document.getElementById('chestStatusText').textContent = 'JAMMED! Release LMB to reset!';
-      triggerError(document.getElementById('chestCanvas'));
-      startJamTimer();
+      triggerError(document.getElementById('chestCanvas')); startJamTimer();
     }
-
     drawChest();
   }
-
-  if (chestIsTurning || chestJammed) {
-    chestRAF = requestAnimationFrame(animateChestLock);
-  } else {
-    chestRAF = null;
-  }
+  chestRAF = (chestIsTurning || chestJammed) ? requestAnimationFrame(animateChestLock) : null;
 }
 
 function startJamTimer() {
   const startTime = Date.now();
   const fill = document.getElementById('chestJamFill');
   const text = document.getElementById('chestJamText');
-
   const checkJam = () => {
     if (!chestJammed || !chestActive) return;
-    const elapsed = Date.now() - startTime;
-    const totalElapsed = chestTotalJamTime + elapsed;
-    const limit = 3000;
-    const pct = Math.min(100, Math.floor((totalElapsed / limit) * 100));
-
-    fill.style.width = pct + '%';
-    text.textContent = 'Lockpick break: ' + pct + '%';
-
-    if (totalElapsed >= limit) {
-      chestActive = false;
-      chestJammed = false;
+    const totalElapsed = chestTotalJamTime + (Date.now() - startTime);
+    const pct = Math.min(100, Math.floor((totalElapsed / 3000) * 100));
+    fill.style.width = pct + '%'; text.textContent = 'Lockpick break: ' + pct + '%';
+    if (totalElapsed >= 3000) {
+      chestActive = false; chestJammed = false;
       if (chestRAF) cancelAnimationFrame(chestRAF);
-      chestRAF = null;
-      window.onmouseup = null;
-      finishChestJob(false);
-      return;
+      chestRAF = null; window.onmouseup = null; finishChestJob(false); return;
     }
     if (chestJammed) requestAnimationFrame(checkJam);
   };
@@ -641,132 +456,60 @@ function drawChest() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
-  const w = 300, h = 300;
-  canvas.width = w * dpr;
-  canvas.height = h * dpr;
-  canvas.style.width = w + 'px';
-  canvas.style.height = h + 'px';
+  canvas.width = 300 * dpr; canvas.height = 300 * dpr;
+  canvas.style.width = '300px'; canvas.style.height = '300px';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  ctx.clearRect(0, 0, w, h);
-
-  ctx.beginPath();
-  ctx.arc(150, 150, 100, 0, Math.PI * 2);
-  ctx.fillStyle = '#1a1228';
-  ctx.fill();
-  ctx.strokeStyle = '#3a3350';
-  ctx.lineWidth = 8;
-  ctx.stroke();
-
+  ctx.clearRect(0, 0, 300, 300);
+  ctx.beginPath(); ctx.arc(150, 150, 100, 0, Math.PI * 2); ctx.fillStyle = '#1a1228'; ctx.fill(); ctx.strokeStyle = '#3a3350'; ctx.lineWidth = 8; ctx.stroke();
   if (chestActive && chestAttemptRot > 0) {
-    let startRad = -Math.PI / 2;
-    let endRad = startRad + (chestAttemptRot * Math.PI / 180);
-
-    if (chestAttemptRot >= 360) {
-      endRad = startRad + Math.PI * 2 + 0.02;
-    }
-
-    ctx.beginPath();
-    ctx.arc(150, 150, 90, startRad, endRad, false);
-    ctx.strokeStyle = chestJammed ? '#b85a7a' : '#d4b8ff';
-    ctx.lineWidth = 12;
-    ctx.lineCap = 'butt';
-    ctx.stroke();
+    let startRad = -Math.PI / 2, endRad = startRad + (chestAttemptRot * Math.PI / 180);
+    if (chestAttemptRot >= 360) endRad = startRad + Math.PI * 2 + 0.02;
+    ctx.beginPath(); ctx.arc(150, 150, 90, startRad, endRad, false);
+    ctx.strokeStyle = chestJammed ? '#b85a7a' : '#d4b8ff'; ctx.lineWidth = 12; ctx.lineCap = 'butt'; ctx.stroke();
   }
-
-  ctx.beginPath();
-  ctx.moveTo(140, 150);
-  ctx.lineTo(160, 150);
-  ctx.lineTo(160, 190);
-  ctx.arc(150, 190, 10, 0, Math.PI);
-  ctx.closePath();
-  ctx.fillStyle = '#000';
-  ctx.fill();
-
+  ctx.beginPath(); ctx.moveTo(140, 150); ctx.lineTo(160, 150); ctx.lineTo(160, 190); ctx.arc(150, 190, 10, 0, Math.PI); ctx.closePath(); ctx.fillStyle = '#000'; ctx.fill();
   const rad = chestAngle * Math.PI / 180;
-  ctx.beginPath();
-  ctx.moveTo(150, 150);
-  ctx.lineTo(150 + Math.cos(rad) * 80, 150 + Math.sin(rad) * 80);
-  ctx.strokeStyle = chestJammed ? '#b85a7a' : '#f3e6c8';
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(150, 150, 6, 0, Math.PI * 2);
-  ctx.fillStyle = chestJammed ? '#b85a7a' : '#f3e6c8';
-  ctx.fill();
+  ctx.beginPath(); ctx.moveTo(150, 150); ctx.lineTo(150 + Math.cos(rad) * 80, 150 + Math.sin(rad) * 80);
+  ctx.strokeStyle = chestJammed ? '#b85a7a' : '#f3e6c8'; ctx.lineWidth = 4; ctx.stroke();
+  ctx.beginPath(); ctx.arc(150, 150, 6, 0, Math.PI * 2); ctx.fillStyle = chestJammed ? '#b85a7a' : '#f3e6c8'; ctx.fill();
 }
 
 function finishChestJob(success) {
   chestActive = false;
   if (chestRAF) cancelAnimationFrame(chestRAF);
   window.onmouseup = null;
-
-  const btn = document.getElementById('chestStartBtn');
-  btn.disabled = true;
-
-  if (game.timeMinutes >= 0 && game.timeMinutes < 360) {
-    triggerNightPenalty('chest');
-    document.getElementById('chestStatusText').textContent = 'Caught by Matilda!';
-    return;
-  }
-
+  const btn = document.getElementById('chestStartBtn'); btn.disabled = true;
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('chest'); document.getElementById('chestStatusText').textContent = 'Caught by Matilda!'; return; }
   if (success) {
     game.workClicks++;
-    btn.classList.add('btn-success');
-    btn.textContent = 'Success!';
+    btn.classList.add('btn-success'); btn.textContent = 'Success!';
     document.getElementById('chestStatusText').textContent = 'Unlocked!';
-
-    let pay = currentPay('chest');
-    const mult = getActionMultiplier();
-    pay = round2(pay * mult);
-
+    let pay = round2(currentPay('chest') * getActionMultiplier());
     game.money = round2(game.money + pay);
     const cd = applyCooldownMult(baseCooldown('chest'));
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingMoney(pay, mult, false);
-
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
+    showFloatingMoney(pay, getActionMultiplier(), false);
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(true);
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(true);
   } else {
-    btn.classList.add('btn-fail');
-    btn.textContent = 'Failed!';
+    btn.classList.add('btn-fail'); btn.textContent = 'Failed!';
     document.getElementById('chestStatusText').textContent = 'Pick broke!';
-
     const { amount: pen, insured } = applyInsurance(round2(currentPay('chest') * 2));
     game.money = round2(Math.max(0, game.money - pen));
-    const cd = applyCooldownMult(60000);
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    const cd = applyCooldownMult(getFailCooldown('chest'));
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
     if (pen > 0) showFloatingPenalty(pen);
-
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(false);
-
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(false);
     const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
-    setTimeout(() => {
-      showModal('Failed!', 'The lockpick broke! Matilda fined you ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal');
-    }, 600);
+    setTimeout(() => showModal('Failed!', 'The lockpick broke! Matilda fined you ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal'), 600);
   }
-
-  saveGame();
-  updateWorkButton();
-  startCooldownTicker();
-
+  saveGame(); updateWorkButton(); startCooldownTicker();
   setTimeout(() => {
     document.getElementById('chestStatusText').textContent = 'Move mouse to rotate, hold LMB to pick.';
     if (btn.classList.contains('btn-cooldown')) btn.textContent = 'Cooldown';
-    chestAttemptRot = 0;
-    document.getElementById('chestJamFill').style.width = '0%';
-    document.getElementById('chestJamText').textContent = 'Lockpick break: 0%';
-    drawChest();
+    chestAttemptRot = 0; document.getElementById('chestJamFill').style.width = '0%';
+    document.getElementById('chestJamText').textContent = 'Lockpick break: 0%'; drawChest();
   }, 2500);
 }
 
@@ -775,45 +518,33 @@ function finishChestJob(success) {
 // ============================================================
 function startArmorerWork() {
   if (!game || game.selectedJobId !== 'armorer') return;
-  if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) {
-    triggerError(document.getElementById('armorerStartBtn'));
-    return;
-  }
+  if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(document.getElementById('armorerStartBtn')); return; }
   isCraftingActive = true;
   currentRecipeIndex = Math.floor(Math.random() * RECIPES.length);
-  craftTableState.fill(null);
-  renderArmorerUI();
+  craftTableState.fill(null); renderArmorerUI();
 }
 
 function renderArmorerUI() {
   if (game.selectedJobId !== 'armorer') return;
-  const startC = document.getElementById('armorerStartContainer');
-  const craftC = document.getElementById('armorerCraftContainer');
+  const startC = document.getElementById('armorerStartContainer'), craftC = document.getElementById('armorerCraftContainer');
   if (!isCraftingActive) {
-    startC.classList.remove('hidden');
-    craftC.classList.add('hidden');
+    startC.classList.remove('hidden'); craftC.classList.add('hidden');
     const btn = document.getElementById('armorerStartBtn');
     const cd = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
-    btn.disabled = !!cd;
-    btn.classList.toggle('btn-cooldown', !!cd);
+    btn.disabled = !!cd; btn.classList.toggle('btn-cooldown', !!cd);
     btn.textContent = cd ? 'Cooldown...' : 'Start Crafting';
     return;
   }
-  startC.classList.add('hidden');
-  craftC.classList.remove('hidden');
+  startC.classList.add('hidden'); craftC.classList.remove('hidden');
   document.getElementById('armorerOrderName').textContent = 'Order: ' + RECIPES[currentRecipeIndex].name;
-  const table = document.getElementById('craftTable');
-  table.innerHTML = '';
+  const table = document.getElementById('craftTable'); table.innerHTML = '';
   for (let i = 0; i < 36; i++) {
     const slot = document.createElement('div');
-    slot.className = 'craft-slot';
-    slot.dataset.index = i;
-    slot.textContent = craftTableState[i] || '';
+    slot.className = 'craft-slot'; slot.dataset.index = i; slot.textContent = craftTableState[i] || '';
     slot.ondragover = e => { e.preventDefault(); slot.classList.add('dragover'); };
     slot.ondragleave = () => slot.classList.remove('dragover');
     slot.ondrop = e => {
-      e.preventDefault();
-      slot.classList.remove('dragover');
+      e.preventDefault(); slot.classList.remove('dragover');
       if (!game.workCooldownEnd || Date.now() >= game.workCooldownEnd) {
         const res = e.dataTransfer.getData('text/plain');
         if (res) { craftTableState[i] = res; renderArmorerUI(); }
@@ -827,114 +558,59 @@ function renderArmorerUI() {
     };
     table.appendChild(slot);
   }
-  const inv = document.getElementById('inventoryBar');
-  inv.innerHTML = '';
+  const inv = document.getElementById('inventoryBar'); inv.innerHTML = '';
   RESOURCES.forEach(r => {
     const item = document.createElement('div');
     item.className = 'inv-item' + (selectedInvItem === r.id && !isDeleteMode ? ' selected' : '');
-    item.textContent = r.id;
-    item.title = r.name;
-    item.draggable = true;
-    item.ondragstart = e => {
-      e.dataTransfer.setData('text/plain', r.id);
-      selectedInvItem = r.id;
-      isDeleteMode = false;
-      renderArmorerUI();
-    };
-    item.onclick = () => {
-      isDeleteMode = false;
-      selectedInvItem = selectedInvItem === r.id ? null : r.id;
-      renderArmorerUI();
-    };
+    item.textContent = r.id; item.title = r.name; item.draggable = true;
+    item.ondragstart = e => { e.dataTransfer.setData('text/plain', r.id); selectedInvItem = r.id; isDeleteMode = false; renderArmorerUI(); };
+    item.onclick = () => { isDeleteMode = false; selectedInvItem = selectedInvItem === r.id ? null : r.id; renderArmorerUI(); };
     inv.appendChild(item);
   });
-  const delBtn = document.getElementById('deleteModeBtn');
-  delBtn.classList.toggle('active', isDeleteMode);
+  document.getElementById('deleteModeBtn').classList.toggle('active', isDeleteMode);
   if (isDeleteMode) selectedInvItem = null;
   const craftBtn = document.getElementById('craftBtn');
   const cd = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
-  craftBtn.disabled = !!cd;
-  craftBtn.classList.toggle('btn-cooldown', !!cd);
+  craftBtn.disabled = !!cd; craftBtn.classList.toggle('btn-cooldown', !!cd);
 }
 
-function toggleDeleteMode() {
-  isDeleteMode = !isDeleteMode;
-  if (isDeleteMode) selectedInvItem = null;
-  renderArmorerUI();
-}
-
-function clearCraftTable() {
-  craftTableState.fill(null);
-  renderArmorerUI();
-}
+function toggleDeleteMode() { isDeleteMode = !isDeleteMode; if (isDeleteMode) selectedInvItem = null; renderArmorerUI(); }
+function clearCraftTable() { craftTableState.fill(null); renderArmorerUI(); }
 
 function finishArmorerCraft() {
   if (!game || game.selectedJobId !== 'armorer' || !isCraftingActive) return;
-  if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) {
-    triggerError(document.getElementById('craftBtn'));
-    return;
-  }
-  if (game.timeMinutes >= 0 && game.timeMinutes < 360) {
-    triggerNightPenalty('armorer');
-    return;
-  }
+  if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(document.getElementById('craftBtn')); return; }
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('armorer'); return; }
   const recipe = RECIPES[currentRecipeIndex];
   let success = true;
-  for (let i = 0; i < 36; i++) {
-    if (craftTableState[i] !== recipe.grid[i]) { success = false; break; }
-  }
-  const btn = document.getElementById('craftBtn');
-  btn.disabled = true;
+  for (let i = 0; i < 36; i++) { if (craftTableState[i] !== recipe.grid[i]) { success = false; break; } }
+  const btn = document.getElementById('craftBtn'); btn.disabled = true;
   if (success) {
     game.workClicks++;
-    btn.classList.add('btn-success');
-    btn.textContent = 'Crafted!';
-    let pay = currentPay('armorer');
-    const mult = getActionMultiplier();
-    pay = round2(pay * mult);
+    btn.classList.add('btn-success'); btn.textContent = 'Crafted!';
+    let pay = round2(currentPay('armorer') * getActionMultiplier());
     game.money = round2(game.money + pay);
     const cd = applyCooldownMult(baseCooldown('armorer'));
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingMoney(pay, mult, false);
-    startCooldownTicker();
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
+    showFloatingMoney(pay, getActionMultiplier(), false); startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(true);
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(true);
     setTimeout(() => {
-      isCraftingActive = false;
-      craftTableState.fill(null);
-      btn.classList.remove('btn-success');
-      btn.textContent = 'Craft!';
-      btn.disabled = false;
-      renderArmorerUI();
+      isCraftingActive = false; craftTableState.fill(null);
+      btn.classList.remove('btn-success'); btn.textContent = 'Craft!'; btn.disabled = false; renderArmorerUI();
     }, 1000);
   } else {
-    btn.classList.add('btn-fail');
-    btn.textContent = 'Failed!';
+    btn.classList.add('btn-fail'); btn.textContent = 'Failed!';
     const { amount: pen, insured } = applyInsurance(round2(currentPay('armorer') * 3));
     game.money = round2(Math.max(0, game.money - pen));
-    const cd = applyCooldownMult(90000);
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    const cd = applyCooldownMult(getFailCooldown('armorer'));
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
     if (pen > 0) showFloatingPenalty(pen);
     startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(false);
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(false);
     setTimeout(() => {
-      const reset = () => {
-        closeModal();
-        isCraftingActive = false;
-        craftTableState.fill(null);
-        btn.classList.remove('btn-fail');
-        btn.textContent = 'Craft!';
-        renderArmorerUI();
-      };
+      const reset = () => { closeModal(); isCraftingActive = false; craftTableState.fill(null); btn.classList.remove('btn-fail'); btn.textContent = 'Craft!'; renderArmorerUI(); };
       const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
       showModal('Failed!', 'Armor ruined. Fine: ' + formatMoney(pen) + '.' + extra, 'Accept', null, reset, reset, 'small-modal');
     }, 600);
@@ -952,8 +628,7 @@ function updateBookPageContent() {
   const r = RECIPES[currentBookPage];
   let html = '<div class="book-page"><div class="book-recipe-name">' + r.name + '</div><div class="book-grid">';
   for (let i = 0; i < 36; i++) html += '<div class="book-slot">' + (r.grid[i] || '') + '</div>';
-  html += '</div></div>';
-  html += '<div class="book-nav">';
+  html += '</div></div><div class="book-nav">';
   html += `<button class="action-btn" onclick="prevBookPage()" ${currentBookPage === 0 ? 'disabled' : ''}>&lt;</button>`;
   html += `<div style="color:#8a7fa5;font-size:12px;">Page ${currentBookPage + 1} / ${RECIPES.length}</div>`;
   html += `<button class="action-btn" onclick="nextBookPage()" ${currentBookPage === RECIPES.length - 1 ? 'disabled' : ''}>&gt;</button>`;
@@ -975,54 +650,40 @@ function startWriterWork() {
   const randomPoem = poems[Math.floor(Math.random() * poems.length)];
   currentPoemLines = randomPoem.split('\n').filter(l => l.length > 0);
   currentPoemText = currentPoemLines.join('\n').replace(/[’‘]/g, "'").replace(/[“”]/g, '"');
-  writerIndex = 0;
-  writerMistakeUsed = false;
-  renderWriterUI();
+  writerIndex = 0; writerMistakeUsed = false; renderWriterUI();
 }
 
 function renderWriterUI() {
   if (game.selectedJobId !== 'writer') return;
-  const startC = document.getElementById('writerStartContainer');
-  const activeC = document.getElementById('writerActiveContainer');
+  const startC = document.getElementById('writerStartContainer'), activeC = document.getElementById('writerActiveContainer');
   if (!isWritingActive) {
-    startC.classList.remove('hidden');
-    activeC.classList.add('hidden');
+    startC.classList.remove('hidden'); activeC.classList.add('hidden');
     const btn = document.getElementById('writerStartBtn');
     const cd = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
-    btn.disabled = !!cd;
-    btn.classList.toggle('btn-cooldown', !!cd);
+    btn.disabled = !!cd; btn.classList.toggle('btn-cooldown', !!cd);
     btn.textContent = cd ? 'Cooldown...' : 'Start Writing';
     window.removeEventListener('keydown', handleWriterKeydown);
     return;
   }
-  startC.classList.add('hidden');
-  activeC.classList.remove('hidden');
-  const container = document.getElementById('poemContainer');
-  container.innerHTML = '';
+  startC.classList.add('hidden'); activeC.classList.remove('hidden');
+  const container = document.getElementById('poemContainer'); container.innerHTML = '';
   let gi = 0;
   for (let l = 0; l < currentPoemLines.length; l++) {
-    const lineDiv = document.createElement('div');
-    lineDiv.style.marginBottom = '4px';
+    const lineDiv = document.createElement('div'); lineDiv.style.marginBottom = '4px';
     const lineText = currentPoemLines[l];
     for (let c = 0; c < lineText.length; c++) {
       const span = document.createElement('span');
-      span.className = 'poem-char';
-      span.textContent = lineText[c];
-      span.id = 'char-' + gi;
+      span.className = 'poem-char'; span.textContent = lineText[c]; span.id = 'char-' + gi;
       if (gi === writerIndex) span.classList.add('current');
       if (gi < writerIndex) span.classList.add('correct');
-      lineDiv.appendChild(span);
-      gi++;
+      lineDiv.appendChild(span); gi++;
     }
     if (l < currentPoemLines.length - 1) {
-      const span = document.createElement('span');
-      span.className = 'poem-char';
-      span.id = 'char-' + gi;
+      const span = document.createElement('span'); span.className = 'poem-char'; span.id = 'char-' + gi;
       if (gi === writerIndex) { span.textContent = '↵'; span.classList.add('current'); }
       else if (gi < writerIndex) { span.textContent = '↵'; span.classList.add('correct'); }
       else span.textContent = '';
-      lineDiv.appendChild(span);
-      gi++;
+      lineDiv.appendChild(span); gi++;
     }
     container.appendChild(lineDiv);
   }
@@ -1051,10 +712,7 @@ function handleWriterKeydown(e) {
     writerIndex++;
     if (writerIndex < currentPoemText.length) {
       const nextSpan = document.getElementById('char-' + writerIndex);
-      if (nextSpan) {
-        nextSpan.classList.add('current');
-        if (currentPoemText[writerIndex] === '\n') nextSpan.textContent = '↵';
-      }
+      if (nextSpan) { nextSpan.classList.add('current'); if (currentPoemText[writerIndex] === '\n') nextSpan.textContent = '↵'; }
     } else finishWriterJob(true);
   } else {
     const up = game.jobUpgrades['writer'] || { mistake: 0 };
@@ -1069,42 +727,25 @@ function handleWriterKeydown(e) {
 function finishWriterJob(success) {
   isWritingActive = false;
   window.removeEventListener('keydown', handleWriterKeydown);
-  if (game.timeMinutes >= 0 && game.timeMinutes < 360) {
-    triggerNightPenalty('writer');
-    renderWriterUI();
-    return;
-  }
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('writer'); renderWriterUI(); return; }
   if (success) {
     game.workClicks++;
-    let pay = currentPay('writer');
-    const mult = getActionMultiplier();
-    pay = round2(pay * mult);
+    let pay = round2(currentPay('writer') * getActionMultiplier());
     game.money = round2(game.money + pay);
     const cd = applyCooldownMult(baseCooldown('writer'));
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingMoney(pay, mult, false);
-    startCooldownTicker();
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
+    showFloatingMoney(pay, getActionMultiplier(), false); startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(true);
-    renderWriterUI();
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(true); renderWriterUI();
   } else {
     const { amount: pen, insured } = applyInsurance(round2(currentPay('writer') * 2));
     game.money = round2(Math.max(0, game.money - pen));
-    const cd = applyCooldownMult(60000);
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    const cd = applyCooldownMult(getFailCooldown('writer'));
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
     if (pen > 0) showFloatingPenalty(pen);
     startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(false);
-    renderWriterUI();
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(false); renderWriterUI();
     const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
     showModal('Failed!', 'Poem ruined. Fine: ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal');
   }
@@ -1117,12 +758,9 @@ function finishWriterJob(success) {
 function startScientistWork() {
   if (!game || game.selectedJobId !== 'scientist') return;
   if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(document.getElementById('scientistStartBtn')); return; }
-  isResearchingActive = true;
-  sciTasks = [];
-  sciCurrentTaskIndex = 0;
+  isResearchingActive = true; sciTasks = []; sciCurrentTaskIndex = 0;
   const up = game.jobUpgrades['scientist'] || { degree: 1 };
   const degree = up.degree || 1;
-
   if (degree === 1 || degree === 2) {
     const count = degree === 1 ? 10 : 7;
     for (let i = 0; i < count; i++) {
@@ -1148,17 +786,13 @@ function startScientistWork() {
       const b = Math.floor(Math.random() * (140 - a)) + 20;
       const c = 180 - a - b;
       const angles = [a, b, c];
-      for (let i = angles.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [angles[i], angles[j]] = [angles[j], angles[i]];
-      }
+      for (let i = angles.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [angles[i], angles[j]] = [angles[j], angles[i]]; }
       sciTasks.push({ type: 'triangle', angles });
     }
   } else if (degree === 5) {
     const shuffled = [...CHEM_EQUATIONS].sort(() => 0.5 - Math.random()).slice(0, 3);
     shuffled.forEach(rx => sciTasks.push({ type: 'chem', eq: rx.eq, answers: rx.answers }));
   }
-
   document.getElementById('scientistStartContainer').classList.add('hidden');
   document.getElementById('scientistActiveContainer').classList.remove('hidden');
   renderScientistTask();
@@ -1173,48 +807,31 @@ function formatChem(str) {
 
 function renderScientistTask() {
   const task = sciTasks[sciCurrentTaskIndex];
-  const tt = document.getElementById('sciTaskText');
-  const cv = document.getElementById('sciCanvas');
-  const btn = document.getElementById('scientistSubmitBtn');
-  tt.style.display = 'none';
-  tt.innerHTML = '';
-  tt.classList.remove('chem-row');
-  cv.classList.add('hidden');
+  const tt = document.getElementById('sciTaskText'), cv = document.getElementById('sciCanvas'), btn = document.getElementById('scientistSubmitBtn');
+  tt.style.display = 'none'; tt.innerHTML = ''; tt.classList.remove('chem-row'); cv.classList.add('hidden');
 
   if (task.type === 'math') {
-    tt.style.display = 'flex';
-    tt.innerHTML = `${task.question} <input type="text" class="sci-input" id="sci-input-0">`;
+    tt.style.display = 'flex'; tt.innerHTML = `${task.question} <input type="text" class="sci-input" id="sci-input-0">`;
     setTimeout(() => document.getElementById('sci-input-0').focus(), 50);
   } else if (task.type === 'angle') {
-    cv.classList.remove('hidden');
-    drawAngle(task.angle);
-    tt.style.display = 'flex';
-    tt.style.marginTop = '15px';
-    tt.innerHTML = `Angle: <input type="text" class="sci-input" id="sci-input-0" placeholder="°">`;
+    cv.classList.remove('hidden'); drawAngle(task.angle);
+    tt.style.display = 'flex'; tt.style.marginTop = '15px'; tt.innerHTML = `Angle: <input type="text" class="sci-input" id="sci-input-0" placeholder="°">`;
     setTimeout(() => document.getElementById('sci-input-0').focus(), 50);
   } else if (task.type === 'triangle') {
-    cv.classList.remove('hidden');
-    drawTriangle(task.angles);
-    tt.style.display = 'flex';
-    tt.style.marginTop = '15px';
-    tt.innerHTML = `<input type="text" class="sci-input" id="sci-input-0" placeholder="A"><input type="text" class="sci-input" id="sci-input-1" placeholder="B"><input type="text" class="sci-input" id="sci-input-2" placeholder="C">`;
+    cv.classList.remove('hidden'); drawTriangle(task.angles);
+    tt.style.display = 'flex'; tt.style.marginTop = '15px'; tt.innerHTML = `<input type="text" class="sci-input" id="sci-input-0" placeholder="A"><input type="text" class="sci-input" id="sci-input-1" placeholder="B"><input type="text" class="sci-input" id="sci-input-2" placeholder="C">`;
     setTimeout(() => document.getElementById('sci-input-0').focus(), 50);
   } else if (task.type === 'chem') {
     tt.classList.add('chem-row');
     const parts = task.eq.split('_');
     let html = '';
-    for (let i = 0; i < parts.length - 1; i++) {
-      html += formatChem(parts[i]) + `<input type="text" class="sci-input chem" id="sci-input-${i}">`;
-    }
+    for (let i = 0; i < parts.length - 1; i++) html += formatChem(parts[i]) + `<input type="text" class="sci-input chem" id="sci-input-${i}">`;
     html += formatChem(parts[parts.length - 1]);
-    tt.style.display = 'flex';
-    tt.innerHTML = html;
+    tt.style.display = 'flex'; tt.innerHTML = html;
     setTimeout(() => document.getElementById('sci-input-0').focus(), 50);
   }
-
   btn.textContent = sciCurrentTaskIndex === sciTasks.length - 1 ? 'Submit Final' : 'Next';
-  btn.disabled = false;
-  btn.classList.remove('btn-cooldown', 'btn-success', 'btn-fail');
+  btn.disabled = false; btn.classList.remove('btn-cooldown', 'btn-success', 'btn-fail');
 }
 
 function submitScientistTask() {
@@ -1223,139 +840,80 @@ function submitScientistTask() {
   let success = true;
   const inputs = document.querySelectorAll('.sci-input');
 
-  if (task.type === 'math') {
-    if (parseInt(inputs[0].value) !== task.answer) { success = false; inputs[0].classList.add('error'); }
-  } else if (task.type === 'angle') {
-    const v = parseInt(inputs[0].value);
-    if (isNaN(v) || Math.abs(v - task.angle) > 10) { success = false; inputs[0].classList.add('error'); }
-  } else if (task.type === 'triangle') {
-    const gA = parseInt(inputs[0].value);
-    const gB = parseInt(inputs[1].value);
-    const gC = parseInt(inputs[2].value);
+  if (task.type === 'math') { if (parseInt(inputs[0].value) !== task.answer) { success = false; inputs[0].classList.add('error'); } }
+  else if (task.type === 'angle') { const v = parseInt(inputs[0].value); if (isNaN(v) || Math.abs(v - task.angle) > 10) { success = false; inputs[0].classList.add('error'); } }
+  else if (task.type === 'triangle') {
+    const gA = parseInt(inputs[0].value), gB = parseInt(inputs[1].value), gC = parseInt(inputs[2].value);
     if (isNaN(gA) || Math.abs(gA - task.angles[0]) > 10) success = false;
     if (isNaN(gB) || Math.abs(gB - task.angles[1]) > 10) success = false;
     if (isNaN(gC) || Math.abs(gC - task.angles[2]) > 10) success = false;
     if (!success) inputs.forEach(x => x.classList.add('error'));
   } else if (task.type === 'chem') {
-    for (let i = 0; i < task.answers.length; i++) {
-      if (parseInt(inputs[i].value) !== task.answers[i]) { success = false; inputs[i].classList.add('error'); }
-    }
+    for (let i = 0; i < task.answers.length; i++) { if (parseInt(inputs[i].value) !== task.answers[i]) { success = false; inputs[i].classList.add('error'); } }
   }
-
   if (!success) { finishScientistJob(false, task); return; }
   if (sciCurrentTaskIndex < sciTasks.length - 1) { sciCurrentTaskIndex++; renderScientistTask(); }
   else finishScientistJob(true, null);
 }
 
 function drawAngle(angle) {
-  const c = document.getElementById('sciCanvas');
-  const ctx = c.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  c.width = 300 * dpr;
-  c.height = 200 * dpr;
-  c.style.width = '300px';
-  c.style.height = '200px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, 300, 200);
+  const c = document.getElementById('sciCanvas'), ctx = c.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  c.width = 300 * dpr; c.height = 200 * dpr; c.style.width = '300px'; c.style.height = '200px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, 300, 200);
   const cx = 150, cy = 100, r = 70;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.arc(cx, cy, r, 0, angle * Math.PI / 180);
-  ctx.fillStyle = 'rgba(168, 194, 86, 0.5)';
-  ctx.fill();
-  ctx.strokeStyle = '#a8c256';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.strokeStyle = '#5a4a6a';
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, 0, angle * Math.PI / 180); ctx.fillStyle = 'rgba(168, 194, 86, 0.5)'; ctx.fill();
+  ctx.strokeStyle = '#a8c256'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.strokeStyle = '#5a4a6a'; ctx.stroke();
 }
 
 function drawTriangle(angles) {
-  const c = document.getElementById('sciCanvas');
-  const ctx = c.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  c.width = 300 * dpr;
-  c.height = 200 * dpr;
-  c.style.width = '300px';
-  c.style.height = '200px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, 300, 200);
+  const c = document.getElementById('sciCanvas'), ctx = c.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  c.width = 300 * dpr; c.height = 200 * dpr; c.style.width = '300px'; c.style.height = '200px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, 300, 200);
   const A = angles[0], B = angles[1], C = angles[2];
-  const sA = Math.sin(A * Math.PI / 180);
-  const sB = Math.sin(B * Math.PI / 180);
-  const sC = Math.sin(C * Math.PI / 180);
+  const sA = Math.sin(A * Math.PI / 180), sB = Math.sin(B * Math.PI / 180), sC = Math.sin(C * Math.PI / 180);
   const scale = 130 / Math.max(sA, sB, sC);
   const sideA = sA * scale, sideB = sB * scale, sideC = sC * scale;
   const Cx = (sideB * sideB - sideA * sideA + sideC * sideC) / (2 * sideC);
   const Cy = Math.sqrt(Math.max(0, sideB * sideB - Cx * Cx));
   const offsetX = (300 - sideC) / 2, offsetY = 165;
-  const pA = { x: offsetX, y: offsetY };
-  const pB = { x: offsetX + sideC, y: offsetY };
-  const pC = { x: offsetX + Cx, y: offsetY - Cy };
-  ctx.beginPath();
-  ctx.moveTo(pA.x, pA.y);
-  ctx.lineTo(pB.x, pB.y);
-  ctx.lineTo(pC.x, pC.y);
-  ctx.closePath();
-  ctx.strokeStyle = '#a8c256';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.fillStyle = 'rgba(168, 194, 86, 0.2)';
-  ctx.fill();
-  ctx.fillStyle = '#a8c256';
-  ctx.font = '16px Georgia';
-  ctx.fillText('A', pA.x - 15, pA.y + 5);
-  ctx.fillText('B', pB.x + 5, pB.y + 5);
-  ctx.fillText('C', pC.x, pC.y - 10);
+  const pA = { x: offsetX, y: offsetY }, pB = { x: offsetX + sideC, y: offsetY }, pC = { x: offsetX + Cx, y: offsetY - Cy };
+  ctx.beginPath(); ctx.moveTo(pA.x, pA.y); ctx.lineTo(pB.x, pB.y); ctx.lineTo(pC.x, pC.y); ctx.closePath();
+  ctx.strokeStyle = '#a8c256'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = 'rgba(168, 194, 86, 0.2)'; ctx.fill();
+  ctx.fillStyle = '#a8c256'; ctx.font = '16px Georgia';
+  ctx.fillText('A', pA.x - 15, pA.y + 5); ctx.fillText('B', pB.x + 5, pB.y + 5); ctx.fillText('C', pC.x, pC.y - 10);
 }
 
 function finishScientistJob(success, failedTask) {
   isResearchingActive = false;
-  const btn = document.getElementById('scientistSubmitBtn');
-  btn.disabled = true;
+  const btn = document.getElementById('scientistSubmitBtn'); btn.disabled = true;
   if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('scientist'); return; }
-
   if (success) {
     game.workClicks++;
-    let pay = currentPay('scientist');
-    const mult = getActionMultiplier();
-    pay = round2(pay * mult);
+    let pay = round2(currentPay('scientist') * getActionMultiplier());
     game.money = round2(game.money + pay);
     const cd = applyCooldownMult(baseCooldown('scientist'));
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
-    showFloatingMoney(pay, mult, false);
-    startCooldownTicker();
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
+    showFloatingMoney(pay, getActionMultiplier(), false); startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(true);
-    btn.classList.add('btn-success');
-    btn.textContent = 'Success!';
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(true);
+    btn.classList.add('btn-success'); btn.textContent = 'Success!';
     setTimeout(() => {
       document.getElementById('scientistActiveContainer').classList.add('hidden');
       document.getElementById('scientistStartContainer').classList.remove('hidden');
-      btn.classList.remove('btn-success');
-      renderScientistUI();
+      btn.classList.remove('btn-success'); renderScientistUI();
     }, 1000);
   } else {
     const { amount: pen, insured } = applyInsurance(round2(currentPay('scientist') * 3));
     game.money = round2(Math.max(0, game.money - pen));
-    const cd = applyCooldownMult(90000);
-    game.workCooldownEnd = Date.now() + cd;
-    game.lastCooldownDuration = cd;
-    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    const cd = applyCooldownMult(getFailCooldown('scientist'));
+    game.workCooldownEnd = Date.now() + cd; game.lastCooldownDuration = cd; game.lastCooldownMult = getHungerMult() * getElixirMult();
     if (pen > 0) showFloatingPenalty(pen);
     startCooldownTicker();
     document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-    updateAllBuyButtons();
-    updateBonusText();
-    triggerAnim(false);
-    btn.classList.add('btn-fail');
-    btn.textContent = 'Failed!';
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(false);
+    btn.classList.add('btn-fail'); btn.textContent = 'Failed!';
     let reason = '';
     if (failedTask) {
       if (failedTask.type === 'math') reason = 'Correct answer: ' + failedTask.answer;
@@ -1368,8 +926,7 @@ function finishScientistJob(success, failedTask) {
         closeModal();
         document.getElementById('scientistActiveContainer').classList.add('hidden');
         document.getElementById('scientistStartContainer').classList.remove('hidden');
-        btn.classList.remove('btn-fail');
-        renderScientistUI();
+        btn.classList.remove('btn-fail'); renderScientistUI();
       };
       const extra = insured ? '<br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
       showModal('Failed!', 'Research failed. Fine: ' + formatMoney(pen) + '.' + extra + '<br><br><span style="color:#a8c256;font-weight:bold;">' + reason + '</span>', 'Accept', null, reset, reset, 'small-modal');
@@ -1380,15 +937,229 @@ function finishScientistJob(success, failedTask) {
 
 function renderScientistUI() {
   if (game.selectedJobId !== 'scientist') return;
-  const startC = document.getElementById('scientistStartContainer');
-  const activeC = document.getElementById('scientistActiveContainer');
+  const startC = document.getElementById('scientistStartContainer'), activeC = document.getElementById('scientistActiveContainer');
   if (!isResearchingActive) {
-    startC.classList.remove('hidden');
-    activeC.classList.add('hidden');
+    startC.classList.remove('hidden'); activeC.classList.add('hidden');
     const btn = document.getElementById('scientistStartBtn');
+    const cd = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
+    btn.disabled = !!cd; btn.classList.toggle('btn-cooldown', !!cd);
+    btn.textContent = cd ? 'Cooldown...' : 'Start Research';
+  }
+}
+
+// ============================================================
+// MINIGAME: ARTIST
+// ============================================================
+function startArtistWork() {
+  if (!game || game.selectedJobId !== 'artist' || game.slaves['artist']) return;
+  const btn = document.getElementById('artistStartBtn');
+  if (game.workCooldownEnd && Date.now() < game.workCooldownEnd) { triggerError(btn); return; }
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) { triggerNightPenalty('artist'); return; }
+
+  const { upg } = getJobData('artist');
+  artistMaxRounds = 1 + upg.earnings;
+  artistMistakesAllowed = upg.precision; // Теперь 0, 1 или 2
+  artistMistakesMade = 0;
+  artistRound = 1;
+  artistActive = true;
+  artistIsShowing = true;
+
+  // The base sequence of 4 blocks is generated ONCE. Each subsequent round
+  // pushes one extra random block onto the end (see startArtistRound).
+  artistSequence = [];
+  for (let i = 0; i < 4; i++) {
+    artistSequence.push(Math.floor(Math.random() * 8));
+  }
+
+  document.getElementById('artistStartContainer').classList.add('hidden');
+  document.getElementById('artistActiveContainer').classList.remove('hidden');
+  document.querySelector('.artist-grid').classList.add('showing');
+
+  const status = document.getElementById('artistStatusText');
+  const blocks = document.querySelectorAll('.artist-block');
+  blocks.forEach(b => b.classList.remove('flash', 'correct-flash', 'error-flash'));
+
+  artistCountdown = 3;
+  status.style.fontSize = '36px';
+  status.style.color = '#f3e6c8';
+
+  const tick = () => {
+    if (!artistActive) return;
+    if (artistCountdown > 0) {
+      status.textContent = artistCountdown;
+      artistCountdown--;
+      artistCountdownTimeout = setTimeout(tick, 1000);
+    } else {
+      status.style.fontSize = '16px';
+      startArtistRound(false);
+    }
+  };
+  tick();
+}
+
+function startArtistRound(isRetry) {
+  if (!artistActive) return;
+
+  // Append a new block only when advancing to a NEW round (not on a retry).
+  // Round 1 already has the initial 4 blocks generated in startArtistWork.
+  if (!isRetry && artistRound > 1) {
+    artistSequence.push(Math.floor(Math.random() * 8));
+  }
+
+  artistPlayerIndex = 0;
+  artistIsShowing = true;
+
+  const status = document.getElementById('artistStatusText');
+  document.querySelector('.artist-grid').classList.add('showing');
+  const retryLabel = isRetry ? ' (Retry)' : '';
+  status.textContent = `Round ${artistRound} / ${artistMaxRounds}${retryLabel}. Watch closely...`;
+  status.style.color = '#b8a37a';
+
+  const blocks = document.querySelectorAll('.artist-block');
+  blocks.forEach(b => b.classList.remove('flash', 'correct-flash', 'error-flash'));
+
+  let i = 0;
+  const playSequence = () => {
+    if (!artistActive) return;
+    if (i >= artistSequence.length) {
+      artistIsShowing = false;
+      document.querySelector('.artist-grid').classList.remove('showing');
+      status.textContent = 'Your turn!';
+      status.style.color = '#a8c256';
+      return;
+    }
+    const blockIdx = artistSequence[i];
+    const block = document.getElementById('artist-block-' + blockIdx);
+    if (block) {
+      block.classList.add('flash');
+      setTimeout(() => block.classList.remove('flash'), 450);
+    }
+    i++;
+    artistFlashTimeout = setTimeout(playSequence, 750);
+  };
+
+  setTimeout(playSequence, 500);
+}
+
+function handleArtistClick(idx) {
+  if (!artistActive || artistIsShowing) return;
+
+  const expected = artistSequence[artistPlayerIndex];
+  const block = document.getElementById('artist-block-' + idx);
+
+  if (idx === expected) {
+    block.classList.add('correct-flash');
+    setTimeout(() => block.classList.remove('correct-flash'), 200);
+    artistPlayerIndex++;
+
+    if (artistPlayerIndex >= artistSequence.length) {
+      // Whole sequence entered correctly.
+      if (artistRound >= artistMaxRounds) {
+        finishArtistJob(true);
+      } else {
+        artistRound++;
+        const status = document.getElementById('artistStatusText');
+        status.textContent = `Round ${artistRound - 1} Complete! Get ready...`;
+        status.style.color = '#a8c256';
+        artistIsShowing = true;
+        document.querySelector('.artist-grid').classList.add('showing');
+        setTimeout(() => startArtistRound(false), 1500);
+      }
+    }
+  } else {
+    block.classList.add('error-flash');
+    setTimeout(() => block.classList.remove('error-flash'), 300);
+
+    if (artistMistakesMade < artistMistakesAllowed) {
+      artistMistakesMade++;
+      document.getElementById('artistStatusText').textContent = `Mistake! (${artistMistakesAllowed - artistMistakesMade} left). Watch again!`;
+      document.getElementById('artistStatusText').style.color = '#e76f51';
+      artistIsShowing = true;
+      document.querySelector('.artist-grid').classList.add('showing');
+      setTimeout(() => startArtistRound(true), 1500);
+    } else {
+      finishArtistJob(false);
+    }
+  }
+}
+
+function finishArtistJob(success) {
+  artistActive = false;
+  artistIsShowing = false;
+  if (artistFlashTimeout) clearTimeout(artistFlashTimeout);
+  if (artistCountdownTimeout) clearTimeout(artistCountdownTimeout);
+  artistCountdown = 0;
+  document.querySelector('.artist-grid').classList.remove('showing');
+
+  const btn = document.getElementById('artistStartBtn');
+  btn.disabled = true;
+
+  if (game.timeMinutes >= 0 && game.timeMinutes < 360) {
+    triggerNightPenalty('artist');
+    document.getElementById('artistStatusText').textContent = 'Caught by Matilda!';
+    return;
+  }
+
+  if (success) {
+    game.workClicks++;
+    let pay = round2(currentPay('artist') * getActionMultiplier());
+    game.money = round2(game.money + pay);
+    const cd = applyCooldownMult(baseCooldown('artist'));
+    game.workCooldownEnd = Date.now() + cd;
+    game.lastCooldownDuration = cd;
+    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    showFloatingMoney(pay, getActionMultiplier(), false);
+
+    document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(true);
+    document.getElementById('artistStatusText').textContent = 'Masterpiece complete!';
+    document.getElementById('artistStatusText').style.color = '#a8c256';
+
+    setTimeout(() => {
+      document.getElementById('artistActiveContainer').classList.add('hidden');
+      document.getElementById('artistStartContainer').classList.remove('hidden');
+      btn.classList.remove('btn-cooldown'); btn.textContent = 'Start Painting';
+      btn.disabled = false;
+    }, 2000);
+  } else {
+    const { amount: pen, insured } = applyInsurance(round2(currentPay('artist') * 3));
+    game.money = round2(Math.max(0, game.money - pen));
+    const cd = applyCooldownMult(getFailCooldown('artist'));
+    game.workCooldownEnd = Date.now() + cd;
+    game.lastCooldownDuration = cd;
+    game.lastCooldownMult = getHungerMult() * getElixirMult();
+    if (pen > 0) showFloatingPenalty(pen);
+
+    document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
+    updateAllBuyButtons(); updateBonusText(); triggerAnim(false);
+    document.getElementById('artistStatusText').textContent = 'Ruined canvas!';
+    document.getElementById('artistStatusText').style.color = '#b85a7a';
+
+    const extra = insured ? '<br><br><span style="color:#4a90e2;font-weight:bold;">Insured! No money lost.</span>' : '';
+    setTimeout(() => {
+      showModal('Failed!', 'You forgot the colors. Matilda fined you ' + formatMoney(pen) + '.' + extra, 'Accept', null, closeModal, closeModal, 'small-modal');
+    }, 600);
+
+    setTimeout(() => {
+      document.getElementById('artistActiveContainer').classList.add('hidden');
+      document.getElementById('artistStartContainer').classList.remove('hidden');
+      btn.classList.remove('btn-cooldown'); btn.textContent = 'Start Painting';
+      btn.disabled = false;
+    }, 2000);
+  }
+  saveGame();
+  startCooldownTicker();
+}
+
+function renderArtistUI() {
+  if (game.selectedJobId !== 'artist') return;
+  const startC = document.getElementById('artistStartContainer'), activeC = document.getElementById('artistActiveContainer');
+  if (!artistActive) {
+    startC.classList.remove('hidden'); activeC.classList.add('hidden');
+    const btn = document.getElementById('artistStartBtn');
     const cd = game.workCooldownEnd && Date.now() < game.workCooldownEnd;
     btn.disabled = !!cd;
     btn.classList.toggle('btn-cooldown', !!cd);
-    btn.textContent = cd ? 'Cooldown...' : 'Start Research';
+    btn.textContent = cd ? 'Cooldown...' : 'Start Painting';
   }
 }

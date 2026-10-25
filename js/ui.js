@@ -56,6 +56,8 @@ function stopAllIntervals() {
   if (distilleryTickInterval) { clearInterval(distilleryTickInterval); distilleryTickInterval = null; }
   if (appleRAF) { cancelAnimationFrame(appleRAF); appleRAF = null; }
   if (swordRAF) { cancelAnimationFrame(swordRAF); swordRAF = null; }
+  if (typeof artistFlashTimeout !== 'undefined' && artistFlashTimeout) { clearTimeout(artistFlashTimeout); artistFlashTimeout = null; }
+  if (typeof artistCountdownTimeout !== 'undefined' && artistCountdownTimeout) { clearTimeout(artistCountdownTimeout); artistCountdownTimeout = null; }
   window.removeEventListener('keydown', handleWriterKeydown);
 }
 
@@ -92,9 +94,7 @@ function showMenu() {
   checkVersionPopup();
 }
 
-function showChapters() {
-  showScene('chapterSelect');
-}
+function showChapters() { showScene('chapterSelect'); }
 
 function selectChapter(n) {
   currentChapter = n;
@@ -123,9 +123,7 @@ async function showChangelog() {
       const date = hp[1] ? hp[1].trim() : '';
       html += `<div class="clog-item${i === 0 ? ' open' : ''}"><div class="clog-header" onclick="toggleChangelog(this)"><div><h3>${version}</h3><span class="date">${date}</span></div><span class="arrow">▶</span></div><div class="clog-body ${i === 0 ? '' : 'hidden'}"><ul>${lines.slice(1).map(c => `<li>${c.replace(/^-\s*/, '')}</li>`).join('')}</ul></div></div>`;
     });
-  } catch (e) {
-    html += '<div class="clog-item open"><div class="clog-header"><h3>Changelog Unavailable</h3></div></div>';
-  }
+  } catch (e) { html += '<div class="clog-item open"><div class="clog-header"><h3>Changelog Unavailable</h3></div></div>'; }
   html += '</div>';
   showModal('Changelog', html, 'Close', null, closeModal, closeModal);
 }
@@ -135,10 +133,7 @@ function checkVersionPopup() {
   if (localStorage.getItem('seen_' + CURRENT_VERSION) !== 'true') {
     updateShown = true;
     setTimeout(() => {
-      const markSeen = () => {
-        localStorage.setItem('seen_' + CURRENT_VERSION, 'true');
-        closeModal();
-      };
+      const markSeen = () => { localStorage.setItem('seen_' + CURRENT_VERSION, 'true'); closeModal(); };
       showModal(
         'Update ' + CURRENT_VERSION,
         '<div style="text-align:left;line-height:1.6;font-size:14px;">New in this version:<br><br>• Added Jackpot upgrade (x5–x30 every 100th act)<br>• Added Golden Apple, Sustenance Potion, Insurance Potion<br>• Added Night Totem — survives night penalty<br>• All consumable prices scale with your top job\'s base pay<br>• Sustenance halves hunger speed, Insurance blocks minigame fines</div>',
@@ -164,8 +159,6 @@ function showRules() {
       '<button class="rules-tab" onclick="switchRulesTab(\'items\', event)">Items</button>' +
       '<button class="rules-tab" onclick="switchRulesTab(\'economy\', event)">Economy</button>' +
     '</div>' +
-
-    // --- BASICS ---
     '<div class="rules-content active" id="rules-basics">' +
       '<h3>Goal</h3><p>Earn money to buy a Coca-Cola. Give it to Matilda to escape.</p>' +
       '<h3>Working</h3><p>Select a job and click "Work" (or play a minigame). Each job has a base pay and a cooldown.</p>' +
@@ -176,8 +169,6 @@ function showRules() {
       '</ul>' +
       '<h3>Slaves</h3><p>Once you max out ALL upgrades for a specific job and buy the <b>Slave License</b> in the Shop, you can buy a Slave. Slaves work automatically forever, even when you are offline (with the Offline upgrade).</p>' +
     '</div>' +
-
-    // --- JOBS (MINIGAMES) ---
     '<div class="rules-content" id="rules-jobs">' +
       '<h3>Simple Jobs</h3><p>Boxes and Dishes just require clicking the Work button.</p>' +
       '<h3>Plate Sorting</h3><p>Click the plates in numerical order (1, 2, 3...). One mistake resets the sequence.</p>' +
@@ -187,17 +178,14 @@ function showRules() {
       '<h3>Writer</h3><p>Type the displayed poem exactly as shown. You can buy a "Draft" upgrade to allow 1 typo.</p>' +
       '<h3>Scientist</h3><p>Solve tasks based on your Degree: basic math, angles, triangle angles, or chemistry equations (fill in the missing coefficients).</p>' +
       '<h3>Chest Locker</h3><p>Move your mouse to rotate the pick. Hold LMB to start picking. The pick will jam if you start at the wrong angle. Release LMB to reset a jam. If the jam bar fills completely, you fail.</p>' +
+      '<h3>Artist</h3><p>After a 3-second countdown, 8 colored blocks flash in sequence. Memorize the order, then repeat it by clicking the blocks. Each round the sequence grows by 1. Complete all rounds for a big payout. Precision upgrade gives up to 2 mistakes per run.</p>' +
     '</div>' +
-
-    // --- TIME ---
     '<div class="rules-content" id="rules-time">' +
       '<h3>Day & Night Cycle</h3><p>1 real second = 2 game minutes. A full day is 24 game hours (12 real minutes).</p>' +
       '<h3>Night Work</h3><p>Working between 00:00 and 06:00 is forbidden. If you try, you get caught and fined 12.5x your current job\'s pay, plus any money your slaves earned during the night.</p>' +
       '<h3>Sleeping</h3><p>You can sleep once per game day. Sleeping passes 8 hours, costs 5% of your current balance as a tax, and reduces satiety by 25%. If you try to sleep twice in one day, you can force it for a 35% fine.</p>' +
       '<h3>Calendar</h3><p>If bought in the shop, Fridays (and later Saturdays/Sundays) give a x2 or x3 multiplier to all earnings.</p>' +
     '</div>' +
-
-    // --- ITEMS & HUNGER ---
     '<div class="rules-content" id="rules-items">' +
       '<h3>Satiety (Hunger)</h3><p>Drops by 1% every 12 seconds. Low satiety drastically increases your work cooldowns (up to 2.5x longer).</p>' +
       '<h3>Apples & Golden Apples</h3><p>Eat regular apples in the Garden for +5% satiety. Golden Apples instantly restore 100%.</p>' +
@@ -206,8 +194,6 @@ function showRules() {
       '<h3>Insurance Potion</h3><p>For 5 game hours (2.5 real minutes), you lose NO money when you fail a minigame.</p>' +
       '<h3>Night Totem</h3><p>One-time use. If you get caught working at night, the Totem shatters and absorbs the entire fine and lockout.</p>' +
     '</div>' +
-
-    // --- ECONOMY ---
     '<div class="rules-content" id="rules-economy">' +
       '<h3>Premium & Jackpot</h3><ul>' +
         '<li><b>Premium:</b> Every 10th click gives a massive multiplier.</li>' +
@@ -218,7 +204,6 @@ function showRules() {
       '<h3>Distillery</h3><p>Buy must, wait for it to age, and sell it. Different stages give different multipliers (up to x10 for Exquisite). If you wait too long (over 10 mins), the wine spoils.</p>' +
       '<h3>Offline Work</h3><p>Buy upgrades in the shop to let your slaves earn money while the game is closed (up to 30% efficiency).</p>' +
     '</div>',
-
     'Close', null, closeModal, closeModal);
 }
 
@@ -244,10 +229,7 @@ function switchStatsTab(tabId, e) {
 }
 
 function requestNewGame() {
-  if (!hasSave(currentChapter)) {
-    startNewGame();
-    return;
-  }
+  if (!hasSave(currentChapter)) { startNewGame(); return; }
   showModal('Start Over?', 'All progress will be erased.', 'Start Over', 'Cancel',
     () => { closeModal(); startNewGame(); }, closeModal);
 }
@@ -268,135 +250,68 @@ function openPromoModal() {
       <input type="text" id="promoInput" class="sci-input" style="width: 220px; font-size: 16px; margin-bottom: 10px; text-transform: none;" placeholder="Code">
       <div id="promoError" style="color: #b85a7a; font-size: 13px; min-height: 20px; font-weight: bold;"></div>
     </div>`,
-    'Activate',
-    'Cancel',
-    () => submitPromoCode(),
-    closeModal,
-    'small-modal'
+    'Activate', 'Cancel', () => submitPromoCode(), closeModal, 'small-modal'
   );
-
   setTimeout(() => {
     const inp = document.getElementById('promoInput');
     if (inp) {
       inp.focus();
-      inp.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') submitPromoCode();
-      });
+      inp.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitPromoCode(); });
     }
   }, 100);
 }
 
 async function submitPromoCode() {
-  const input = document.getElementById('promoInput');
-  const errorEl = document.getElementById('promoError');
+  const input = document.getElementById('promoInput'), errorEl = document.getElementById('promoError');
   if (!input || !errorEl) return;
-
   const code = input.value.trim();
-  if (!code) {
-    errorEl.textContent = 'Please enter a code.';
-    return;
-  }
-
-  if (game.usedPromos.includes(code)) {
-    errorEl.textContent = 'You have already used this code!';
-    return;
-  }
-
-  errorEl.textContent = 'Checking...';
-  errorEl.style.color = '#8a7fa5';
-
+  if (!code) { errorEl.textContent = 'Please enter a code.'; return; }
+  if (game.usedPromos.includes(code)) { errorEl.textContent = 'You have already used this code!'; return; }
+  errorEl.textContent = 'Checking...'; errorEl.style.color = '#8a7fa5';
   try {
     const res = await fetch('codes.txt');
     if (!res.ok) throw new Error('Failed to load codes');
     const text = await res.text();
-
     let found = null;
     const lines = text.split('\n');
     for (let line of lines) {
-      line = line.trim();
-      if (!line) continue;
-      const parts = line.split('-');
-      if (parts.length < 2) continue;
+      line = line.trim(); if (!line) continue;
+      const parts = line.split('-'); if (parts.length < 2) continue;
       const c = parts[0].trim();
       if (c === code) {
         const rewardPart = parts[1].trim();
         const [type, amountStr] = rewardPart.split(':');
         const amount = parseInt(amountStr, 10);
-        if (!isNaN(amount)) {
-          found = { type: type.trim(), amount };
-        }
+        if (!isNaN(amount)) found = { type: type.trim(), amount };
         break;
       }
     }
-
-    if (!found) {
-      errorEl.textContent = 'Invalid code.';
-      errorEl.style.color = '#b85a7a';
-      return;
-    }
-
-    if (found.type === 'm') {
-      game.money = round2(game.money + found.amount);
-      document.getElementById('balanceDisplay').textContent = formatMoney(game.money);
-      errorEl.textContent = `+ $${found.amount}`;
-      errorEl.style.color = '#a8c256';
-    } else if (found.type === 'a') {
-      game.apples += found.amount;
-      updateHungerUI();
-      errorEl.textContent = `+ ${found.amount} Apples`;
-      errorEl.style.color = '#a8c256';
-    } else if (found.type === 'e') {
-      game.elixirs += found.amount;
-      updateHungerUI();
-      errorEl.textContent = `+ ${found.amount} Elixirs`;
-      errorEl.style.color = '#a8c256';
-    } else {
-      errorEl.textContent = 'Unknown reward type.';
-      errorEl.style.color = '#b85a7a';
-      return;
-    }
-
-    game.usedPromos.push(code);
-    saveGame();
-
-    input.disabled = true;
-    document.getElementById('modalConfirm').disabled = true;
-
+    if (!found) { errorEl.textContent = 'Invalid code.'; errorEl.style.color = '#b85a7a'; return; }
+    if (found.type === 'm') { game.money = round2(game.money + found.amount); document.getElementById('balanceDisplay').textContent = formatMoney(game.money); errorEl.textContent = `+ $${found.amount}`; errorEl.style.color = '#a8c256'; }
+    else if (found.type === 'a') { game.apples += found.amount; updateHungerUI(); errorEl.textContent = `+ ${found.amount} Apples`; errorEl.style.color = '#a8c256'; }
+    else if (found.type === 'e') { game.elixirs += found.amount; updateHungerUI(); errorEl.textContent = `+ ${found.amount} Elixirs`; errorEl.style.color = '#a8c256'; }
+    else { errorEl.textContent = 'Unknown reward type.'; errorEl.style.color = '#b85a7a'; return; }
+    game.usedPromos.push(code); saveGame();
+    input.disabled = true; document.getElementById('modalConfirm').disabled = true;
     setTimeout(() => { closeModal(); }, 2000);
-
-  } catch (e) {
-    errorEl.textContent = 'Error loading codes. (Make sure codes.txt exists)';
-    errorEl.style.color = '#b85a7a';
-  }
+  } catch (e) { errorEl.textContent = 'Error loading codes. (Make sure codes.txt exists)'; errorEl.style.color = '#b85a7a'; }
 }
 
 // ============================================================
 // CONSUMABLES
 // ============================================================
-function eatGoldenApple(e) {
-  if (!game || game.goldenApples <= 0) { triggerError(e.target); return; }
-  game.goldenApples--;
-  game.satiety = 100;
-  saveGame();
-  updateHungerUI();
-}
-
+function eatGoldenApple(e) { if (!game || game.goldenApples <= 0) { triggerError(e.target); return; } game.goldenApples--; game.satiety = 100; saveGame(); updateHungerUI(); }
 function drinkSustenance(e) {
   if (!game || game.sustenancePotions <= 0) { triggerError(e.target); return; }
   game.sustenancePotions--;
   const now = Date.now();
   game.sustenanceEndTime = (game.sustenanceEndTime > now ? game.sustenanceEndTime : now) + 150000;
-  saveGame();
-  updateHungerUI();
-  updateBonusText();
+  saveGame(); updateHungerUI(); updateBonusText();
 }
-
 function drinkInsurance(e) {
   if (!game || game.insurancePotions <= 0) { triggerError(e.target); return; }
   game.insurancePotions--;
   const now = Date.now();
   game.insuranceEndTime = (game.insuranceEndTime > now ? game.insuranceEndTime : now) + 150000;
-  saveGame();
-  updateHungerUI();
-  updateBonusText();
+  saveGame(); updateHungerUI(); updateBonusText();
 }

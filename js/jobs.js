@@ -86,9 +86,8 @@ function renderUpgradeInnerHTML(id, upg, stamMaxLv, earnMaxLv, plateMaxLv, precM
     const canStam = !stamMaxed && game.money >= stamC;
     const canEarn = !earnMaxed && game.money >= earnC;
 
-    if (!['armorer', 'writer', 'scientist'].includes(id)) {
-      html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Stamina <span>Lv ${upg.stamina} / ${stamMaxLv}</span></div><div class="upg-effect">-${(job.cdStep / 1000).toFixed(1)}s cooldown per level</div><div class="upg-stats">${(cd / 1000).toFixed(1)}s → ${(nextCd / 1000).toFixed(1)}s</div></div>${stamMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-stam-btn-${id}" onclick="buyUpgrade('${id}','stamina',event)" ${canStam ? '' : 'disabled'}>${formatMoney(stamC)}</button>`}</div>`;
-    }
+    // Stamina now appears for ALL jobs (removed the armorer/writer/scientist exclusion)
+    html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Stamina <span>Lv ${upg.stamina} / ${stamMaxLv}</span></div><div class="upg-effect">-${(job.cdStep / 1000).toFixed(1)}s cooldown per level</div><div class="upg-stats">${(cd / 1000).toFixed(1)}s → ${(nextCd / 1000).toFixed(1)}s</div></div>${stamMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-stam-btn-${id}" onclick="buyUpgrade('${id}','stamina',event)" ${canStam ? '' : 'disabled'}>${formatMoney(stamC)}</button>`}</div>`;
 
     if (id !== 'scientist') {
       html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Earnings <span>Lv ${upg.earnings} / ${earnMaxLv}</span></div><div class="upg-effect">+${formatMoney(job.payStep)} per level</div><div class="upg-stats">${formatMoney(pay)} → ${formatMoney(nextPay)}</div></div>${earnMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-earn-btn-${id}" onclick="buyUpgrade('${id}','earnings',event)" ${canEarn ? '' : 'disabled'}>${formatMoney(earnC)}</button>`}</div>`;
@@ -132,7 +131,7 @@ function renderUpgradeInnerHTML(id, upg, stamMaxLv, earnMaxLv, plateMaxLv, precM
       const deg = upg.degree || 1;
       const dCost = degreeCost(id);
       const canD = !degreeMaxed && game.money >= dCost;
-      const nextPay = [0, 3000000, 4800000, 7200000, 12000000, 0][deg + 1] || 0;
+      const nextPay = [0, 2100000, 3000000, 4800000, 7200000, 12000000][deg + 1] || 0;
       html += `<div class="upg-item"><div class="upg-info"><div class="upg-title">Degree <span>Lv ${deg} / ${degreeMaxLv}</span></div><div class="upg-effect">Unlocks new research and raises pay.</div><div class="upg-stats">${formatMoney(pay)}${degreeMaxed ? '' : ' → ' + formatMoney(nextPay)}</div></div>${degreeMaxed ? '<div class="maxed-text" style="margin:0;">MAXED</div>' : `<button class="upg-buy" id="upg-degree-btn-${id}" onclick="buyUpgrade('${id}','degree',event)" ${canD ? '' : 'disabled'}>${formatMoney(dCost)}</button>`}</div>`;
     }
   }
@@ -279,7 +278,8 @@ function updateAllBuyButtons() {
     const miM = mistakeMaxLv === 0 || upg.mistake >= mistakeMaxLv;
     const dM = degreeMaxLv === 0 || (upg.degree || 1) >= degreeMaxLv;
 
-    if (!['armorer', 'writer', 'scientist'].includes(j.id) && !sM) {
+    // Removed armorer/writer/scientist exclusions. Stamina buttons work everywhere now.
+    if (!sM) {
       const b = document.getElementById('upg-stam-btn-' + j.id);
       if (b) b.disabled = game.money < staminaCost(j.id);
     }
@@ -343,9 +343,8 @@ function updateBonusText() {
   if (game.selectedJobId) {
     const hm = getHungerMult();
     html += `<div style="color:#b85a7a; margin-top:4px; font-weight:bold;">Hunger: ${(1 / hm).toFixed(2)}x speed</div>`;
-    // Убрал отсюда дублирование Эликсира
   }
-  
+
   if (Date.now() < game.elixirEndTime) {
     const rem = Math.floor((game.elixirEndTime - Date.now()) / 1000);
     const m = Math.floor(rem / 60);
@@ -356,7 +355,6 @@ function updateBonusText() {
     const rem = Math.floor((game.sustenanceEndTime - Date.now()) / 1000);
     const m = Math.floor(rem / 60);
     const s = rem % 60;
-    // Изменил цвет на мятный #4ade80
     html += `<div style="color:#4ade80; margin-top:4px; font-size:11px;">Sustenance: Halves hunger (${m}m ${s}s)</div>`;
   }
   if (Date.now() < game.insuranceEndTime) {
@@ -365,7 +363,7 @@ function updateBonusText() {
     const s = rem % 60;
     html += `<div style="color:#4a90e2; margin-top:4px; font-size:11px;">Insurance: Fines blocked (${m}m ${s}s)</div>`;
   }
-  
+
   el.innerHTML = html;
 }
 

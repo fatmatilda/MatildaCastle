@@ -113,7 +113,9 @@ function getJobData(jobId) {
 
 function baseCooldown(jobId) {
   const { job, upg } = getJobData(jobId);
-  if (jobId === 'armorer' || jobId === 'writer' || jobId === 'scientist') return 60000;
+  // Stamina now works for every job, including armorer / writer / scientist.
+  // Previously there was a hard-coded `return 60000;` for those three,
+  // which silently ignored every stamina upgrade the player bought.
   return Math.max(job.maxCd, job.baseCd - upg.stamina * job.cdStep);
 }
 
@@ -139,7 +141,6 @@ function currentPlates(jobId) {
 
 function staminaCost(jobId) {
   const { job, upg } = getJobData(jobId);
-  if (jobId === 'armorer' || jobId === 'writer' || jobId === 'scientist') return 0;
   return round2(job.stamBase * Math.pow(job.stamMult, upg.stamina));
 }
 
@@ -162,13 +163,13 @@ function precisionCost(jobId) {
 }
 
 function mistakeCost(jobId) {
-  return jobId === 'writer' ? 15000000 : 0;
+  return jobId === 'writer' ? 22500000 : 0;
 }
 
 function degreeCost(jobId) {
   const { upg } = getJobData(jobId);
   if (jobId !== 'scientist') return 0;
-  return [0, 20000000, 30000000, 45000000, 67500000, 0][upg.degree || 1] || 0;
+  return [0, 30000000, 45000000, 67500000, 100000000, 0][upg.degree || 1] || 0;
 }
 
 function slaveCost(jobId) {
@@ -177,7 +178,7 @@ function slaveCost(jobId) {
   if (job.basePlates) base += platesCost(jobId);
   if (job.precBase) base += precisionCost(jobId);
   if (jobId === 'writer') base += mistakeCost(jobId);
-  if (jobId === 'scientist') base += 20000000 + 30000000 + 45000000 + 67500000;
+  if (jobId === 'scientist') base += 30000000 + 45000000 + 67500000 + 100000000;
   return round2(base * 1.35);
 }
 

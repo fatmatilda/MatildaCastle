@@ -368,7 +368,10 @@ function renderInvestUI() {
     const isOpen = openTresItemId === `invest-${item.id}`;
     const owned = item.owned || 0;
     const info = getItemProfit(item);
-    const displayPrice = owned > 0 ? item.currentPrice : base.base;
+    // Always show the live market price. Previously it showed base.base when
+    // owned=0, but since selling no longer resets the price, the buy price
+    // and the displayed price must stay consistent.
+    const displayPrice = item.currentPrice;
 
     const el = document.createElement('div');
     el.className = 'tres-market-item' + (isOpen ? ' open' : '');
@@ -563,13 +566,13 @@ function investSell(id, n) {
   it.totalInvested = round2(Math.max(0, (it.totalInvested || 0) - avgCost * n));
   it.owned -= n;
 
-  if (it.owned === 0) {
-    const base = INVEST_ITEMS.find(m => m.id === id);
-    if (base) {
-      it.currentPrice = base.base;
-      it.history = [base.base];
-    }
+  if (it.owned <= 0) {
+    it.owned = 0;
     it.totalInvested = 0;
+    // Price and history are intentionally NOT reset here. The old behaviour
+    // (price reset to base on full sell) allowed an infinite "buy low →
+    // sell high → price resets → buy low again" loop. The market price now
+    // persists, and the chart keeps its full history.
   }
 
   saveGame();
